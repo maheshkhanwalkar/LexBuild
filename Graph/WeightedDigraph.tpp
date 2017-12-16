@@ -7,7 +7,7 @@
 #include <memory>
 
 
-template <typename T>
+template <class T>
 class WeightedDigraph
 {
 public:
@@ -18,7 +18,7 @@ public:
 	 * @param dest - destination vertex
 	 * @param weight - edge weight
 	 */
-	void add_edge(int src, int dest, T weight)
+	virtual void add_edge(int src, int dest, T weight)
 	{
 		adj_list[src].push_back(std::make_pair(dest, weight));
 	}
@@ -77,7 +77,7 @@ public:
 		return nullptr;
 	}
 
-private:
+protected:
 	std::unordered_map<int, std::vector<std::pair<int, T>>> adj_list;
 };
 
