@@ -5,8 +5,8 @@ enable_testing()
 
 set(CMAKE_CXX_COMPILER clang++)
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -g -O0 -stdlib=libc++ -fno-limit-debug-info")
 
 set(SOURCE_FILES
         Graph/WeightedDigraph.tpp

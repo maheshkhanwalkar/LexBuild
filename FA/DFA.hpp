@@ -34,10 +34,16 @@ public:
 	void consume(char c);
 
 	/**
+	 * Current DFA state
+	 * @return current state
+	 */
+	int c_state();
+
+	/**
 	 * Get the processed data
 	 * @return the data
 	 */
-	std::shared_ptr<std::string> get_data();
+	std::unique_ptr<std::string> get_data();
 
 	/**
 	 * Mark a state as an accept state
@@ -51,12 +57,13 @@ public:
 	void reset();
 
 private:
-	std::stringstream current;
+	std::string current;
 
 	int s_state;
 	int state;
 
 	std::unordered_set<int> accept;
+	bool invalid;
 };
 
 

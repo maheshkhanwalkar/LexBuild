@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <memory>
-
+#include <algorithm>
 
 template <class T>
 class WeightedDigraph
@@ -61,20 +61,35 @@ public:
 	}
 
 	/**
-	 * Weight of the edge: src -> dest
+	 * Weight(s) of the edge: src -> dest
 	 * @param src - source vertex
 	 * @param dest - destination vertex
-	 * @return weight of the connecting edge
+	 * @return weight(s) of the connecting edge(s)
 	 */
-	std::shared_ptr<T> get_weight(int src, int dest)
+	std::unique_ptr<std::vector<T>> get_weight(int src, int dest)
 	{
+		auto weights = std::make_unique<std::vector<T>>();
+
 		for (auto itr = adj_list[src].begin(); itr != adj_list[src].end(); itr++)
 		{
 			if (itr->first == dest)
-				return std::make_shared<T>(itr->second);
+				weights->push_back(itr->second);
 		}
 
-		return nullptr;
+		if(weights->size() == 0)
+			return nullptr;
+
+		return weights;
+	}
+
+	/**
+	 * Edges of a vertex
+	 * @param src - source vertex
+	 * @return - destination vertices and the edge weights
+	 */
+	std::vector<std::pair<int, T>> edges(int src)
+	{
+		return adj_list[src];
 	}
 
 protected:
