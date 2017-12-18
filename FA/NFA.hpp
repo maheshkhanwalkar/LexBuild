@@ -30,10 +30,22 @@ public:
 	std::unique_ptr<DFA> transform();
 
 	/**
+	 * Change the NFA's start state
+	 * @param n_start - new start state
+	 */
+	void set_start(int n_start);
+
+	/**
+	 * Start state of the NFA
+	 * @return the start state
+	 */
+	int get_start();
+
+	/**
 	 * Mark a state as an accept state
 	 * @param state - state to mark
 	 */
-	void set_accept(int state);
+	void add_accept(int state);
 
 	/**
 	 * Check if a state is an accept state
@@ -41,6 +53,34 @@ public:
 	 * @return true if state is an accept state
 	 */
 	bool is_accept(int state);
+
+	/**
+	 * Returns the accept set of the NFA
+	 * @return NFA accept set
+	 */
+	std::unordered_set<int> get_accept();
+
+	/**
+	 * Clears the accept set of the NFA
+	 */
+	void clear_accept();
+
+	/**
+	 * Merge an NFA into this graph at a specific location
+	 *
+	 * Approach:
+	 *   1. Merge 'other' into this graph and apply renaming as
+	 *      required
+	 *
+	 *   2. Make an e-transition between 'where' to start of 'other'
+	 *
+	 *   3. Add new accept states, but *do not* remove any. This is
+	 *      different than the merge() behavior.
+	 *
+	 * @param other - NFA to merge with
+	 * @param where - vertex to attach 'other' to.
+	 */
+	void merge_at(NFA& other, int where);
 
 	/**
 	 * Merge an NFA into this graph:

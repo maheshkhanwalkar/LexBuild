@@ -133,6 +133,61 @@ std::unordered_set<int> NFA::expand(int state)
 	return result;
 }
 
+void NFA::merge_at(NFA& other, int where)
+{
+	std::unordered_map<int, int> rename;
+
+	int p_start;
+
+	if (other.s_state >= v_count + 1)
+	{
+		v_count = other.s_state;
+		p_start = v_count;
+	}
+	else
+	{
+		v_count++;
+		p_start = v_count;
+
+		rename.insert({other.s_state, v_count});
+	}
+
+	/* Merge 'other' start state to 'where' */
+	add_edge(where, p_start, {0, Edge_Type::EPSILON});
+
+	/* Merge the result of other */
+
+	std::queue<int> process;
+	std::unordered_set<int> visited;
+
+	process.push(other.s_state);
+
+	while(!process.empty())
+	{
+		int current = process.front();
+		process.pop();
+
+		visited.insert(current);
+
+		/* Fix accept states */
+		if(other.is_accept(current))
+			add_accept(rename[current]);
+
+		auto edges = other.adj_list[current];
+
+		for(auto edge : edges)
+		{
+			if(rename.find(edge.first) == rename.end())
+				rename.insert({edge.first, ++v_count});
+
+			add_edge(rename[current], rename[edge.first], edge.second);
+
+			if (visited.find(edge.first) == visited.end())
+				process.push(edge.first);
+		}
+	}
+}
+
 void NFA::merge(NFA& other)
 {
 	std::unordered_map<int, int> rename;
@@ -175,7 +230,7 @@ void NFA::merge(NFA& other)
 
 		/* Fix accept states */
 		if(other.is_accept(current))
-			set_accept(rename[current]);
+			add_accept(rename[current]);
 
 		auto edges = other.adj_list[current];
 
@@ -209,13 +264,39 @@ void NFA::consolidate()
 	accept.insert(n_state);
 }
 
-void NFA::set_accept(int state)
+void NFA::add_accept(int state)
 {
+	if(state > v_count)
+		v_count = state;
+
 	accept.insert(state);
 }
 
 bool NFA::is_accept(int state)
 {
 	return accept.find(state) != accept.end();
+}
+
+void NFA::set_start(int n_start)
+{
+	if(n_start > v_count)
+		v_count = n_start;
+
+	s_state = n_start;
+}
+
+int NFA::get_start()
+{
+	return s_state;
+}
+
+std::unordered_set<int> NFA::get_accept()
+{
+	return accept;
+}
+
+void NFA::clear_accept()
+{
+	accept.clear();
 }
 

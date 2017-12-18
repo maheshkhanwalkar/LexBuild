@@ -13,16 +13,20 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 
 set(SOURCE_FILES
         Graph/WeightedDigraph.tpp
-        FA/NFA.cpp FA/NFA.hpp FA/DFA.cpp FA/DFA.hpp)
+        FA/NFA.cpp FA/NFA.hpp FA/DFA.cpp FA/DFA.hpp
+        Regex/NFAGen.cpp Regex/NFAGen.hpp)
 
 set(TEST_DIGRAPH ${SOURCE_FILES} Test/DigraphTest.cpp)
 set(TEST_NFA ${SOURCE_FILES} Test/NFATest.cpp)
+set(TEST_REGEX ${SOURCE_FILES} Test/RegexTest.cpp)
 
 include_directories(.)
 add_library(lexbuild STATIC ${SOURCE_FILES})
 
 add_executable(lextest-digraph ${TEST_DIGRAPH})
 add_executable(lextest-nfa ${TEST_NFA})
+add_executable(lextest-regex ${TEST_REGEX})
 
 add_test(NAME lextest-digraph COMMAND lextest-digraph)
 add_test(NAME lextest-nfa COMMAND lextest-nfa)
+add_test(NAME lextest-regex COMMAND lextest-regex)

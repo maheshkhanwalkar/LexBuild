@@ -11,7 +11,7 @@ BOOST_AUTO_TEST_CASE(nfa_transform_basic)
 	test.add_edge(0, 1, {0, Edge_Type::EPSILON});
 	test.add_edge(0, 2, {0, Edge_Type::EPSILON});
 
-	test.set_accept(2);
+	test.add_accept(2);
 	std::unique_ptr<DFA> result = test.transform();
 
 	BOOST_CHECK(result->at_accept());
@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE(nfa_transform_self_loop_simple)
 	test.add_edge(0, 0, {0, Edge_Type::EPSILON});
 	test.add_edge(0, 0, {'a', Edge_Type::NORMAL});
 
-	test.set_accept(0);
+	test.add_accept(0);
 	std::unique_ptr<DFA> result = test.transform();
 
 	BOOST_CHECK(result->at_accept());
@@ -52,8 +52,8 @@ BOOST_AUTO_TEST_CASE(nfa_transform_simple_alternation)
 	
 	test.add_edge(3, 5, {0, Edge_Type::EPSILON});
 	test.add_edge(4, 5, {0, Edge_Type::EPSILON});
-	
-	test.set_accept(5);
+
+	test.add_accept(5);
 	
 	std::unique_ptr<DFA> result = test.transform();
 
@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(nfa_transform_simple_alternation)
 	BOOST_CHECK(*(result->get_data()) == "b");
 }
 
-BOOST_AUTO_TEST_CASE(nfa_transform_simple_kleene)
+BOOST_AUTO_TEST_CASE(nfa_transform_simple_star)
 {
 	NFA test(0);
 
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(nfa_transform_simple_kleene)
 	test.add_edge(3, 1, {0, Edge_Type::EPSILON});
 	test.add_edge(3, 4, {0, Edge_Type::EPSILON});
 
-	test.set_accept(4);
+	test.add_accept(4);
 
 	std::unique_ptr<DFA> result = test.transform();
 
@@ -126,8 +126,8 @@ BOOST_AUTO_TEST_CASE(nfa_transform_dup_edges)
 	test.add_edge(3, 5, {'r', Edge_Type::NORMAL});
 	test.add_edge(4, 6, {'l', Edge_Type::NORMAL});
 
-	test.set_accept(5);
-	test.set_accept(6);
+	test.add_accept(5);
+	test.add_accept(6);
 
 	std::unique_ptr<DFA> result = test.transform();
 
@@ -179,7 +179,7 @@ BOOST_AUTO_TEST_CASE(nfa_consolidate)
 	test.add_edge(0, 3, {'c', Edge_Type::NORMAL});
 
 	for(int i = 1; i <= 3; i++)
-		test.set_accept(i);
+		test.add_accept(i);
 
 	test.consolidate();
 
@@ -211,12 +211,12 @@ BOOST_AUTO_TEST_CASE(nfa_merge_no_consolidate_simple)
 	g1.add_edge(0, 1, {'a', Edge_Type::NORMAL});
 	g1.add_edge(1, 2, {'b', Edge_Type::NORMAL});
 
-	g1.set_accept(2);
+	g1.add_accept(2);
 
 	NFA g2(0);
 
 	g2.add_edge(0, 0, {'c', Edge_Type::NORMAL});
-	g2.set_accept(0);
+	g2.add_accept(0);
 
 	g1.merge(g2);
 
@@ -256,16 +256,16 @@ BOOST_AUTO_TEST_CASE(nfa_merge_consolidate)
 	g1.add_edge(0, 1, {'a', Edge_Type::NORMAL});
 	g1.add_edge(0, 2, {'b', Edge_Type::NORMAL});
 
-	g1.set_accept(1);
-	g1.set_accept(2);
+	g1.add_accept(1);
+	g1.add_accept(2);
 
 	NFA g2(0);
 
 	g2.add_edge(0, 1, {'c', Edge_Type::NORMAL});
 	g2.add_edge(0, 2, {'d', Edge_Type::NORMAL});
 
-	g2.set_accept(1);
-	g2.set_accept(2);
+	g2.add_accept(1);
+	g2.add_accept(2);
 
 	g1.merge(g2);
 
@@ -305,4 +305,34 @@ BOOST_AUTO_TEST_CASE(nfa_merge_consolidate)
 
 	BOOST_CHECK(g1.edges(5).size() == 0);
 	BOOST_CHECK(g1.edges(6).size() == 0);
+}
+
+BOOST_AUTO_TEST_CASE(nfa_merge_at)
+{
+	NFA g1(0);
+
+	g1.add_edge(0, 1, {'a', Edge_Type::NORMAL});
+	g1.add_accept(1);
+
+	NFA g2(0);
+
+	g2.add_edge(0, 1, {'b', Edge_Type::NORMAL});
+	g2.add_accept(1);
+
+	g1.merge_at(g2, 0);
+
+	/* No modifications of 'g2' */
+
+	BOOST_CHECK(g2.is_accept(1));
+	BOOST_CHECK(g2.edges(0).size() == 1);
+	BOOST_CHECK(g2.edges(0).front().first == 1);
+	BOOST_CHECK(g2.edges(0).front().second.second == Edge_Type::NORMAL);
+
+	/* Check 'g1' modifications */
+
+	BOOST_CHECK(g1.get_accept().size() == 2);
+	BOOST_CHECK(g1.edges(0).size() == 2);
+
+	BOOST_CHECK(g1.is_accept(1));
+	BOOST_CHECK(g1.is_accept(3));
 }

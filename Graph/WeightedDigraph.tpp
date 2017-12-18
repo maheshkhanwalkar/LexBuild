@@ -20,11 +20,11 @@ public:
 	void add_edge(int src, int dest, T weight)
 	{
 		int max = src > dest ? src : dest;
-		
+
 		/* Implicitly "create" vertices */
 		if(max > v_count)
 			v_count = max;
-		
+
 		adj_list[src].push_back(std::make_pair(dest, weight));
 	}
 
@@ -95,6 +95,16 @@ public:
 	std::vector<std::pair<int, T>> edges(int src)
 	{
 		return adj_list[src];
+	}
+
+	/**
+	 * Make a new vertex (optional)
+	 * @return a new vertex id
+	 */
+	int make_vertex()
+	{
+		v_count++;
+		return v_count;
 	}
 
 protected:
