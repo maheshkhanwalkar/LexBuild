@@ -42,15 +42,36 @@ public:
 	 */
 	bool is_accept(int state);
 
+	/**
+	 * Merge an NFA into this graph:
+	 *
+	 * Approach:
+	 *   1. Consolidate accept states into one via e-transitions
+	 *
+	 *   2. Merge 'other' into this graph and apply renaming as
+	 *      required.
+	 *
+	 *   3. Make an edge between consolidated accept state and
+	 *      copied start state of 'other'
+	 *
+	 * @param other - NFA to merge with
+	 */
+	void merge(NFA& other);
+
 private:
 	int s_state;
+
 	std::unordered_set<int> accept;
 
-	/* Compute unique edges of a NFA-DFA state */
+	/* Compute unique edges of a "DFA" state */
 	std::unique_ptr<std::unordered_map<char, std::unordered_set<int>>>
 		unique_edges(const std::unordered_set<int>& node);
 
+	/* Compute equivalent (expanded) DFA state */
 	std::unordered_set<int> expand(int state);
+
+	/* Consolidate accept states */
+	void consolidate();
 
 	/* Hash function for unordered_set */
 	struct set_hash

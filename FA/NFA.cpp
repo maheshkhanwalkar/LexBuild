@@ -133,6 +133,53 @@ std::unordered_set<int> NFA::expand(int state)
 	return result;
 }
 
+void NFA::merge(NFA& other)
+{
+	std::unordered_map<int, int> rename;
+	consolidate();
+
+	int p_start;
+
+	if (other.s_state >= v_count + 1)
+	{
+		v_count = other.s_state;
+		p_start = v_count;
+	}
+	else
+	{
+		v_count++;
+		p_start = v_count;
+
+		rename.insert({other.s_state, v_count});
+	}
+
+	/* Merge consolidated accept to 'other' start state */
+	/* TODO should consolidation just point directly to 'other' start? */
+
+	add_edge(*accept.begin(), p_start, {0, Edge_Type::EPSILON});
+	accept.clear();
+
+	/* Merge result of other */
+	/* TODO */
+}
+
+void NFA::consolidate()
+{
+	/* Nothing to do */
+	if(accept.size() <= 1)
+		return;
+
+	int n_state = v_count + 1;
+
+	/* Point to new state */
+	for (auto state : accept)
+		add_edge(state, n_state, {0, Edge_Type::EPSILON});
+
+	/* Only one accept state */
+	accept.clear();
+	accept.insert(n_state);
+}
+
 void NFA::set_accept(int state)
 {
 	accept.insert(state);

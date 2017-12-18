@@ -11,15 +11,20 @@ template <class T>
 class WeightedDigraph
 {
 public:
-
 	/**
 	 * Add an edge: src -> dest
 	 * @param src - source vertex
 	 * @param dest - destination vertex
 	 * @param weight - edge weight
 	 */
-	virtual void add_edge(int src, int dest, T weight)
+	void add_edge(int src, int dest, T weight)
 	{
+		int max = src > dest ? src : dest;
+		
+		/* Implicitly "create" vertices */
+		if(max > v_count)
+			v_count = max;
+		
 		adj_list[src].push_back(std::make_pair(dest, weight));
 	}
 
@@ -94,6 +99,7 @@ public:
 
 protected:
 	std::unordered_map<int, std::vector<std::pair<int, T>>> adj_list;
+	int v_count = 0;
 };
 
 

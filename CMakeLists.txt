@@ -6,7 +6,10 @@ enable_testing()
 set(CMAKE_CXX_COMPILER clang++)
 
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -g -O0 -stdlib=libc++ -fno-limit-debug-info")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -stdlib=libc++")
+
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -fno-limit-debug-info")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 
 set(SOURCE_FILES
         Graph/WeightedDigraph.tpp
@@ -23,4 +26,3 @@ add_executable(lextest-nfa ${TEST_NFA})
 
 add_test(NAME lextest-digraph COMMAND lextest-digraph)
 add_test(NAME lextest-nfa COMMAND lextest-nfa)
-
