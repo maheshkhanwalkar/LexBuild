@@ -169,3 +169,140 @@ BOOST_AUTO_TEST_CASE(nfa_transform_dup_edges)
 
 	BOOST_CHECK(l_state != r_state);
 }
+
+BOOST_AUTO_TEST_CASE(nfa_consolidate)
+{
+	NFA test(0);
+
+	test.add_edge(0, 1, {'a', Edge_Type::NORMAL});
+	test.add_edge(0, 2, {'b', Edge_Type::NORMAL});
+	test.add_edge(0, 3, {'c', Edge_Type::NORMAL});
+
+	for(int i = 1; i <= 3; i++)
+		test.set_accept(i);
+
+	test.consolidate();
+
+	BOOST_CHECK(!test.is_accept(0));
+	BOOST_CHECK(test.edges(0).size() == 3);
+
+	for(auto edge : test.edges(0))
+		BOOST_CHECK(edge.second.second == Edge_Type::NORMAL);
+
+	for(int i = 1; i <= 3; i++)
+	{
+		BOOST_CHECK(!test.is_accept(i));
+		BOOST_CHECK(test.edges(i).size() == 1);
+
+		auto pair = test.edges(i).front();
+
+		BOOST_CHECK(pair.first == 4);
+		BOOST_CHECK(pair.second.second == Edge_Type::EPSILON);
+	}
+
+	BOOST_CHECK(test.is_accept(4));
+	BOOST_CHECK(test.edges(4).size() == 0);
+}
+
+BOOST_AUTO_TEST_CASE(nfa_merge_no_consolidate_simple)
+{
+	NFA g1(0);
+
+	g1.add_edge(0, 1, {'a', Edge_Type::NORMAL});
+	g1.add_edge(1, 2, {'b', Edge_Type::NORMAL});
+
+	g1.set_accept(2);
+
+	NFA g2(0);
+
+	g2.add_edge(0, 0, {'c', Edge_Type::NORMAL});
+	g2.set_accept(0);
+
+	g1.merge(g2);
+
+	/* Make sure g2 is *not* modified */
+	BOOST_CHECK(g2.is_accept(0));
+	BOOST_CHECK(g2.edges(0).size() == 1);
+
+	auto pair = g2.edges(0).front();
+
+	BOOST_CHECK(pair.first == 0);
+	BOOST_CHECK(pair.second.first == 'c');
+	BOOST_CHECK(pair.second.second == Edge_Type::NORMAL);
+
+	/* Check modifications to g1 */
+	BOOST_CHECK(!g1.is_accept(2));
+	BOOST_CHECK(g1.edges(2).size() == 1);
+
+	pair = g1.edges(2).front();
+
+	BOOST_CHECK(pair.first == 3);
+	BOOST_CHECK(pair.second.second == Edge_Type::EPSILON);
+
+	BOOST_CHECK(g1.is_accept(3));
+	BOOST_CHECK(g1.edges(3).size() == 1);
+
+	pair = g1.edges(3).front();
+
+	BOOST_CHECK(pair.first == 3);
+	BOOST_CHECK(pair.second.first == 'c');
+	BOOST_CHECK(pair.second.second == Edge_Type::NORMAL);
+}
+
+BOOST_AUTO_TEST_CASE(nfa_merge_consolidate)
+{
+	NFA g1(0);
+
+	g1.add_edge(0, 1, {'a', Edge_Type::NORMAL});
+	g1.add_edge(0, 2, {'b', Edge_Type::NORMAL});
+
+	g1.set_accept(1);
+	g1.set_accept(2);
+
+	NFA g2(0);
+
+	g2.add_edge(0, 1, {'c', Edge_Type::NORMAL});
+	g2.add_edge(0, 2, {'d', Edge_Type::NORMAL});
+
+	g2.set_accept(1);
+	g2.set_accept(2);
+
+	g1.merge(g2);
+
+	/* Make sure g2 is *not* modified */
+	BOOST_CHECK(g2.is_accept(1));
+	BOOST_CHECK(g2.is_accept(2));
+
+	BOOST_CHECK(g2.edges(0).size() == 2);
+
+	for(auto edge : g2.edges(0))
+		BOOST_CHECK(edge.second.second == Edge_Type::NORMAL);
+
+	/* Check modifications */
+	BOOST_CHECK(!g1.is_accept(1));
+	BOOST_CHECK(!g1.is_accept(2));
+
+	BOOST_CHECK(g1.edges(1).size() == 1);
+	BOOST_CHECK(g1.edges(2).size() == 1);
+
+	BOOST_CHECK(g1.edges(1).front().first == 3);
+	BOOST_CHECK(g1.edges(1).front().second.second == Edge_Type::EPSILON);
+
+	BOOST_CHECK(g1.edges(2).front().first == 3);
+	BOOST_CHECK(g1.edges(2).front().second.second == Edge_Type::EPSILON);
+
+	BOOST_CHECK(g1.edges(3).size() == 1);
+	BOOST_CHECK(g1.edges(3).front().first == 4);
+	BOOST_CHECK(g1.edges(3).front().second.second == Edge_Type::EPSILON);
+
+	BOOST_CHECK(g1.edges(4).size() == 2);
+
+	for(auto edge : g1.edges(4))
+		BOOST_CHECK(edge.second.second == Edge_Type::NORMAL);
+
+	BOOST_CHECK(g1.is_accept(5));
+	BOOST_CHECK(g1.is_accept(6));
+
+	BOOST_CHECK(g1.edges(5).size() == 0);
+	BOOST_CHECK(g1.edges(6).size() == 0);
+}

@@ -58,6 +58,14 @@ public:
 	 */
 	void merge(NFA& other);
 
+	/**
+	 * Consolidate accept states
+	 *
+	 *   All previous accept states point to *one* true accept state
+	 *   via e-transitions.
+	 */
+	void consolidate();
+
 private:
 	int s_state;
 
@@ -69,9 +77,6 @@ private:
 
 	/* Compute equivalent (expanded) DFA state */
 	std::unordered_set<int> expand(int state);
-
-	/* Consolidate accept states */
-	void consolidate();
 
 	/* Hash function for unordered_set */
 	struct set_hash

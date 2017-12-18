@@ -160,7 +160,36 @@ void NFA::merge(NFA& other)
 	accept.clear();
 
 	/* Merge result of other */
-	/* TODO */
+
+	std::queue<int> process;
+	std::unordered_set<int> visited;
+
+	process.push(other.s_state);
+
+	while(!process.empty())
+	{
+		int current = process.front();
+		process.pop();
+
+		visited.insert(current);
+
+		/* Fix accept states */
+		if(other.is_accept(current))
+			set_accept(rename[current]);
+
+		auto edges = other.adj_list[current];
+
+		for(auto edge : edges)
+		{
+			if(rename.find(edge.first) == rename.end())
+				rename.insert({edge.first, ++v_count});
+
+			add_edge(rename[current], rename[edge.first], edge.second);
+
+			if (visited.find(edge.first) == visited.end())
+				process.push(edge.first);
+		}
+	}
 }
 
 void NFA::consolidate()
