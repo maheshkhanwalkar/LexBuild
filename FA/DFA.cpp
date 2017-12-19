@@ -1,13 +1,27 @@
 
 #include "DFA.hpp"
 
-DFA::DFA(int s_state)
+DFA::DFA()
 {
 	/* Initial DFA state */
-	this->s_state = s_state;
+	this->s_state = make_vertex();
 	this->state = s_state;
 
 	this->invalid = false;
+}
+
+bool DFA::set_start(int n_start)
+{
+	if(!valid(n_start))
+		return false;
+
+	if(state != s_state)
+		return false;
+
+	s_state = n_start;
+	state = n_start;
+
+	return true;
 }
 
 bool DFA::peek(char c)
@@ -15,9 +29,9 @@ bool DFA::peek(char c)
 	if(invalid)
 		return false;
 
-	for(auto edge : adj_list[state])
+	for(auto edge : outgoing(state))
 	{
-		if(edge.second == c)
+		if(edge.get_weight() == c)
 			return true;
 	}
 
@@ -34,11 +48,11 @@ void DFA::consume(char c)
 	if(invalid)
 		return;
 
-	for(auto edge : adj_list[state])
+	for(auto edge : outgoing(state))
 	{
-		if(edge.second == c)
+		if(edge.get_weight() == c)
 		{
-			state = edge.first;
+			state = edge.get_dest();
 			current += c;
 
 			return;
@@ -53,9 +67,12 @@ std::unique_ptr<std::string> DFA::get_data()
 	return std::make_unique<std::string>(current);
 }
 
-void DFA::set_accept(int state)
+bool DFA::add_accept(int state)
 {
-	accept.insert(state);
+	if(!valid(state))
+		return false;
+
+	return accept.insert(state).second;
 }
 
 void DFA::reset()
@@ -64,7 +81,7 @@ void DFA::reset()
 	current.clear();
 }
 
-int DFA::c_state()
+int DFA::curr_state()
 {
 	return state;
 }

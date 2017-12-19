@@ -2,18 +2,25 @@
 #ifndef LEXBUILD_DFA_HPP
 #define LEXBUILD_DFA_HPP
 
-#include "Graph/WeightedDigraph.tpp"
+#include "Graph/Digraph.hpp"
+
 #include <sstream>
 #include <unordered_set>
 
-class DFA : public WeightedDigraph<char>
+class DFA : public Digraph<char>
 {
 public:
 	/**
-	 * Initialize a DFA
-	 * @param s_state - start state of the DFA
+	 * Initialize the DFA
 	 */
-	explicit DFA(int s_state);
+	explicit DFA();
+
+	/**
+	 * Change the start state of the DFA
+	 * @param n_start - new start state
+	 * @return true if successful
+	 */
+	bool set_start(int n_start);
 
 	/**
 	 * Peek to see if DFA can transition on 'c'
@@ -37,7 +44,7 @@ public:
 	 * Current DFA state
 	 * @return current state
 	 */
-	int c_state();
+	int curr_state();
 
 	/**
 	 * Get the processed data
@@ -48,8 +55,9 @@ public:
 	/**
 	 * Mark a state as an accept state
 	 * @param state - state to mark
+	 * @return true if the state was successfully marked
 	 */
-	void set_accept(int state);
+	bool add_accept(int state);
 
 	/**
 	 * Reset the DFA
