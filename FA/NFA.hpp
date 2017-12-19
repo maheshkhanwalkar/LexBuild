@@ -2,18 +2,15 @@
 #ifndef LEXBUILD_NFA_HPP
 #define LEXBUILD_NFA_HPP
 
-#include "Graph/WeightedDigraph.tpp"
+#include "Graph/Digraph.hpp"
 #include "FA/DFA.hpp"
+
+#include "FA/Edge/NFAWeight.hpp"
 
 #include <memory>
 #include <unordered_set>
 
-enum class Edge_Type
-{
-	NORMAL, EPSILON
-};
-
-class NFA : public WeightedDigraph<std::pair<char, Edge_Type>>
+class NFA : public Digraph<NFAWeight>
 {
 public:
 
