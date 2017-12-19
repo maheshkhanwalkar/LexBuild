@@ -20,22 +20,11 @@ public:
 	 */
 	int make_vertex();
 
-	/* TODO: (Possible fix)
-	 * Consider storing incoming(vertex).
-	 */
-
 	/**
 	 * Remove a vertex from the digraph.
 	 *
-	 *   Note: This is an *expensive* operation to conduct
-	 *   because outdegree(vertex) + indegree(vertex) links
-	 *   need to be removed.
-	 *
-	 *   The main problem is computing the incoming edges of
-	 *   vertex in this digraph implementation, which requires
-	 *   going through every edge in the graph.
-	 *
-	 *   Use with caution.
+	 * Note: This operation needs to remove:
+	 *    outdegree(vertex) + indegree(vertex) links
 	 *
 	 * @param vertex - vertex to remove
 	 * @return true, if the vertex was successfully freed
@@ -72,6 +61,34 @@ public:
 	 */
 	int edges();
 
+	/**
+	 * Outgoing edges of a vertex
+	 * @param src - vertex to examine
+	 * @return set of outgoing edges from src
+	 */
+	std::unordered_set<Edge<T, K>> outgoing(int src);
+
+	/**
+	 * Incoming edges of a vertex
+	 * @param dest - vertex to examine
+	 * @return set of incoming edges to dest
+	 */
+	std::unordered_set<Edge<T, K>> incoming(int dest);
+
+	/**
+	 * In-degree of a vertex
+	 * @param vertex - vertex to consider
+	 * @return -1 if vertex is invalid, else indegree(vertex)
+	 */
+	int in_degree(int vertex);
+
+	/**
+	 * Out-degree of a vertex
+	 * @param vertex - vertex to consider
+	 * @return -1 if vertex is invalid, else outdegree(vertex)
+	 */
+	int out_degree(int vertex);
+
 private:
 	/* New vertex generator */
 	int v_next = 0;
@@ -87,7 +104,10 @@ private:
 
 	/* Adjacency list for the graph */
 	/*  NOTE: parallel edges are *not* supported */
-	std::unordered_map<int, std::unordered_set<Edge<T, K>>> adj_list{};
+	std::unordered_map<int, std::unordered_set<Edge<T, K>>> adj_map{};
+
+	/* Incoming edge map */
+	std::unordered_map<int, std::unordered_set<Edge<T, K>>> in_map{};
 
 	/* Is the vertex valid? */
 	bool valid(int vertex);
@@ -119,7 +139,13 @@ bool Digraph<T, K>::remove_vertex(int vertex)
 	if(!valid(vertex))
 		return false;
 
-	/* TODO link removal + avail adding */
+	size_t out_degree = adj_map[vertex].size();
+	adj_map[vertex].clear();
+
+	e_count -= out_degree;
+
+	for(Edge e : in_map[vertex])
+		remove_edge(e.get_src(), e.get_dest());
 
 	v_count--;
 	return true;
@@ -131,9 +157,13 @@ bool Digraph<T, K>::add_edge(int src, int dest, T weight, K data)
 	if(!valid(src) || !valid(dest))
 		return false;
 
-	if(adj_list[src].insert(Edge(src, dest, weight, data)).second)
+	Edge edge(src, dest, weight, data);
+
+	if(adj_map[src].insert(edge).second)
 	{
 		e_count++;
+		in_map[dest].insert(edge);
+
 		return true;
 	}
 
@@ -146,15 +176,34 @@ bool Digraph<T, K>::remove_edge(int src, int dest)
 	if(!valid(src) || !valid(dest))
 		return false;
 
-	auto& set = adj_list[src];
+	auto& src_set = adj_map[src];
+	auto& dest_set = in_map[dest];
 
-	for(auto itr = set.begin(); itr != set.end(); itr++)
+	bool found = false;
+
+	for(auto itr = src_set.begin(); itr != src_set.end(); itr++)
 	{
 		Edge edge = *itr;
 
 		if(edge.get_src() == src && edge.get_dest() == dest)
 		{
-			set.erase(itr);
+			src_set.erase(itr);
+			e_count--;
+
+			found = true;
+		}
+	}
+
+	if(!found)
+		return false;
+
+	for(auto itr = dest_set.begin(); itr != dest_set.end(); itr++)
+	{
+		Edge edge = *itr;
+
+		if(edge.get_src() == src && edge.get_dest() == dest)
+		{
+			src_set.erase(itr);
 			e_count--;
 
 			return true;
@@ -182,6 +231,40 @@ int Digraph<T, K>::edges()
 	return e_count;
 }
 
+template<class T, class K>
+std::unordered_set<Edge<T, K>> Digraph<T, K>::outgoing(int src)
+{
+	if(!valid(src))
+		return nullptr;
 
+	return adj_map[src];
+}
+
+template<class T, class K>
+std::unordered_set<Edge<T, K>> Digraph<T, K>::incoming(int dest)
+{
+	if(!valid(dest))
+		return nullptr;
+
+	return in_map[dest];
+}
+
+template<class T, class K>
+int Digraph<T, K>::in_degree(int vertex)
+{
+	if(!valid(vertex))
+		return -1;
+
+	return static_cast<int>(in_map[vertex].size());
+}
+
+template<class T, class K>
+int Digraph<T, K>::out_degree(int vertex)
+{
+	if(!valid(vertex))
+		return -1;
+
+	return static_cast<int>(adj_map[vertex].size());
+}
 
 #endif
