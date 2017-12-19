@@ -74,20 +74,23 @@ BOOST_AUTO_TEST_CASE(digraph_test_has_edge)
 	}
 }
 
-/*BOOST_AUTO_TEST_CASE(digraph_test_weight)
+BOOST_AUTO_TEST_CASE(digraph_test_connections)
 {
 	Digraph<int> test;
+	std::vector<int> vertices;
+
+	for (int i = 0; i <= 1000; i++)
+		vertices.push_back(test.make_vertex());
 
 	for (int i = 0; i < 1000; i++)
-		test.add_edge(i, i + 1, i * 2);
+		BOOST_CHECK(test.add_edge(vertices[i], vertices[i + 1], i * 2));
 
-	for (int i = 1000; i > 0; i--)
+	for(int i = 0; i < 1000; i++)
 	{
-		auto weights = test.get_weight(i - 1, i);
+		BOOST_CHECK(test.outdegree(vertices[i]) == 1);
+		BOOST_CHECK(test.indegree(vertices[i + 1]) == 1);
 
-		BOOST_CHECK(weights->size() == 1);
-		BOOST_CHECK(weights->front() == (i - 1) * 2);
-
-		BOOST_CHECK(test.get_weight(i, i - 1) == nullptr);
+		BOOST_CHECK(test.has_edge(vertices[i], vertices[i + 1]));
+		BOOST_CHECK(!test.has_edge(vertices[i + 1], vertices[i]));
 	}
-}*/
+}

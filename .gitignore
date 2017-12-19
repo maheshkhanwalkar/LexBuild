@@ -24,3 +24,4 @@
 # CLion Files
 cmake-build-debug/*
 .idea/workspace.xml
+.idea/dictionaries/*
