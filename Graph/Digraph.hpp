@@ -130,6 +130,7 @@ private:
 		}
 	};
 
+protected:
 	/* Is the vertex valid? */
 	bool valid(int vertex);
 };
