@@ -5,7 +5,10 @@
 #define LEXBUILD_DIGRAPH_HPP
 
 #include "Graph/Edge.hpp"
+
 #include <queue>
+#include <unordered_map>
+#include <unordered_set>
 
 template <class T, class K>
 class Digraph
@@ -49,12 +52,42 @@ public:
 	 */
 	bool add_edge(int src, int dest, T weight, K data);
 
+	/**
+	 * Remove edge from the graph
+	 * @param src - source vertex
+	 * @param dest - destination vertex
+	 * @return true if the edge was removed
+	 */
+	bool remove_edge(int src, int dest);
+
+	/**
+	 * Vertex count in the graph
+	 * @return vertex count
+	 */
+	int vertices();
+
+	/**
+	 * Edge count in the graph
+	 * @return edge count
+	 */
+	int edges();
+
 private:
-	/* New vertex count */
+	/* New vertex generator */
+	int v_next = 0;
+
+	/* Current vertex count */
 	int v_count = 0;
 
+	/* Current edge count */
+	int e_count = 0;
+
 	/* Free nodes (to be re-alloc'd) */
-	std::queue<int> avail;
+	std::queue<int> avail{};
+
+	/* Adjacency list for the graph */
+	/*  NOTE: parallel edges are *not* supported */
+	std::unordered_map<int, std::unordered_set<Edge<T, K>>> adj_list{};
 
 	/* Is the vertex valid? */
 	bool valid(int vertex);
@@ -68,19 +101,28 @@ int Digraph<T, K>::make_vertex()
 		int vertex = avail.front();
 
 		avail.pop();
+
+		v_count++;
 		return vertex;
 	}
 
-	int vertex = v_count;
-	v_count++;
+	int vertex = v_next;
+	v_next++;
 
+	v_count++;
 	return vertex;
 }
 
 template <class T, class K>
 bool Digraph<T, K>::remove_vertex(int vertex)
 {
-	/* TODO */
+	if(!valid(vertex))
+		return false;
+
+	/* TODO link removal + avail adding */
+
+	v_count--;
+	return true;
 }
 
 template<class T, class K>
@@ -89,16 +131,57 @@ bool Digraph<T, K>::add_edge(int src, int dest, T weight, K data)
 	if(!valid(src) || !valid(dest))
 		return false;
 
-	/* TODO */
+	if(adj_list[src].insert(Edge(src, dest, weight, data)).second)
+	{
+		e_count++;
+		return true;
+	}
 
-	return true;
+	return false;
+}
+
+template<class T, class K>
+bool Digraph<T, K>::remove_edge(int src, int dest)
+{
+	if(!valid(src) || !valid(dest))
+		return false;
+
+	auto& set = adj_list[src];
+
+	for(auto itr = set.begin(); itr != set.end(); itr++)
+	{
+		Edge edge = *itr;
+
+		if(edge.get_src() == src && edge.get_dest() == dest)
+		{
+			set.erase(itr);
+			e_count--;
+
+			return true;
+		}
+	}
+
+	return false;
 }
 
 template <class T, class K>
 bool Digraph<T, K>::valid(int vertex)
 {
-	return vertex >= v_count;
+	return vertex >= v_next;
 }
+
+template<class T, class K>
+int Digraph<T, K>::vertices()
+{
+	return v_count;
+}
+
+template<class T, class K>
+int Digraph<T, K>::edges()
+{
+	return e_count;
+}
+
 
 
 #endif
