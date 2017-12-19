@@ -2,7 +2,9 @@
 #ifndef LEXBUILD_EDGE_HPP
 #define LEXBUILD_EDGE_HPP
 
-template <class T, class K>
+#include <functional>
+
+template <class T>
 class Edge
 {
 public:
@@ -11,75 +13,94 @@ public:
 	 * @param src - source vertex
 	 * @param dest - destination vertex
 	 * @param weight - edge weight
-	 * @param data - extra edge information
 	 */
-	Edge(int src, int dest, T weight, K data);
+	Edge(int src, int dest, T weight);
 
 	/**
 	 * Get source vertex
 	 * @return vertex id of src
 	 */
-	int get_src();
+	int get_src() const;
 
 	/**
 	 * Get destination vertex
 	 * @return vertex id of dest
 	 */
-	int get_dest();
+	int get_dest() const;
 
 
 	/**
 	 * Get weight
 	 * @return edge weight
 	 */
-	T get_weight();
+	T get_weight() const;
 
 	/**
-	 * Get extra data
-	 * @return stored data
+	 * Compare edges
+	 * @param rhs - edge to compare with
+	 * @return true if the edges are the same
 	 */
-	K get_data();
+	bool operator==(const Edge& rhs) const;
 
 private:
 	int src, dest;
 	T weight;
-
-	K data;
 };
 
-template <class T, class K>
-Edge<T, K>::Edge(int src, int dest, T weight, K data)
+template <class T>
+class EdgeHash
+{
+public:
+	size_t operator() (const Edge<T>& edge)
+	{
+		size_t seed = 0;
+
+		hash_combine(seed, edge.get_src());
+		hash_combine(seed, edge.get_dest());
+
+		return seed;
+	}
+
+private:
+	inline void hash_combine(size_t& seed, int next)
+	{
+		std::hash<int> h_func;
+		seed ^= h_func(next) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+	}
+};
+
+template <class T>
+Edge<T>::Edge(int src, int dest, T weight)
 {
 	this->src = src;
 	this->dest = dest;
 
 	this->weight = weight;
-	this->data = data;
 }
 
-template<class T, class K>
-int Edge<T, K>::get_src()
+template<class T>
+int Edge<T>::get_src() const
 {
 	return src;
 }
 
-template<class T, class K>
-int Edge<T, K>::get_dest()
+template<class T>
+int Edge<T>::get_dest() const
 {
 	return dest;
 }
 
-template<class T, class K>
-T Edge<T, K>::get_weight()
+template<class T>
+T Edge<T>::get_weight() const
 {
 	return weight;
 }
 
-template<class T, class K>
-K Edge<T, K>::get_data()
+template<class T>
+bool Edge<T>::operator==(const Edge<T>& rhs) const
 {
-	return data;
+	return this->src == rhs.src && this->dest == rhs.dest
+			&& this->weight == rhs.weight;
 }
-
 
 #endif

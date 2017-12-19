@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
-template <class T, class K>
+template <class T>
 class Digraph
 {
 public:
@@ -36,10 +36,9 @@ public:
 	 * @param src - source vertex
 	 * @param dest - destination vertex
 	 * @param weight - edge weight
-	 * @param data - extra data
 	 * @return true if the edge was added
 	 */
-	bool add_edge(int src, int dest, T weight, K data);
+	bool add_edge(int src, int dest, T weight);
 
 	/**
 	 * Remove edge from the graph
@@ -48,6 +47,14 @@ public:
 	 * @return true if the edge was removed
 	 */
 	bool remove_edge(int src, int dest);
+
+	/**
+	 * Check if there is an edge
+	 * @param src - source vertex
+	 * @param dest - destination vertex
+	 * @return true if the edge exists, false otherwise
+	 */
+	bool has_edge(int src, int dest);
 
 	/**
 	 * Vertex count in the graph
@@ -66,28 +73,28 @@ public:
 	 * @param src - vertex to examine
 	 * @return set of outgoing edges from src
 	 */
-	std::unordered_set<Edge<T, K>> outgoing(int src);
+	std::unordered_set<Edge<T>, EdgeHash<T>> outgoing(int src);
 
 	/**
 	 * Incoming edges of a vertex
 	 * @param dest - vertex to examine
 	 * @return set of incoming edges to dest
 	 */
-	std::unordered_set<Edge<T, K>> incoming(int dest);
+	std::unordered_set<Edge<T>, EdgeHash<T>> incoming(int dest);
 
 	/**
 	 * In-degree of a vertex
 	 * @param vertex - vertex to consider
-	 * @return -1 if vertex is invalid, else indegree(vertex)
+	 * @return -1 if vertex is invalid, else in-degree of vertex
 	 */
-	int in_degree(int vertex);
+	int indegree(int vertex);
 
 	/**
 	 * Out-degree of a vertex
 	 * @param vertex - vertex to consider
-	 * @return -1 if vertex is invalid, else outdegree(vertex)
+	 * @return -1 if vertex is invalid, else out-degree of vertex
 	 */
-	int out_degree(int vertex);
+	int outdegree(int vertex);
 
 private:
 	/* New vertex generator */
@@ -104,17 +111,31 @@ private:
 
 	/* Adjacency list for the graph */
 	/*  NOTE: parallel edges are *not* supported */
-	std::unordered_map<int, std::unordered_set<Edge<T, K>>> adj_map{};
+	std::unordered_map<int, std::unordered_set<Edge<T>, EdgeHash<T>>> adj_map{};
 
 	/* Incoming edge map */
-	std::unordered_map<int, std::unordered_set<Edge<T, K>>> in_map{};
+	std::unordered_map<int, std::unordered_set<Edge<T>, EdgeHash<T>>> in_map{};
+
+	/* Hash function for Edge<T> */
+	struct edge_hash
+	{
+		size_t operator() (const Edge<T>& edge) const
+		{
+			std::hash<int> h_func;
+
+			int src = edge.get_src();
+			int dest = edge.get_dest();
+
+			return std::__hash_combine(h_func(src), h_func(dest));
+		}
+	};
 
 	/* Is the vertex valid? */
 	bool valid(int vertex);
 };
 
-template <class T, class K>
-int Digraph<T, K>::make_vertex()
+template <class T>
+int Digraph<T>::make_vertex()
 {
 	if(!avail.empty())
 	{
@@ -133,8 +154,8 @@ int Digraph<T, K>::make_vertex()
 	return vertex;
 }
 
-template <class T, class K>
-bool Digraph<T, K>::remove_vertex(int vertex)
+template <class T>
+bool Digraph<T>::remove_vertex(int vertex)
 {
 	if(!valid(vertex))
 		return false;
@@ -144,20 +165,20 @@ bool Digraph<T, K>::remove_vertex(int vertex)
 
 	e_count -= out_degree;
 
-	for(Edge e : in_map[vertex])
+	for(Edge<T> e : in_map[vertex])
 		remove_edge(e.get_src(), e.get_dest());
 
 	v_count--;
 	return true;
 }
 
-template<class T, class K>
-bool Digraph<T, K>::add_edge(int src, int dest, T weight, K data)
+template<class T>
+bool Digraph<T>::add_edge(int src, int dest, T weight)
 {
 	if(!valid(src) || !valid(dest))
 		return false;
 
-	Edge edge(src, dest, weight, data);
+	Edge<T> edge(src, dest, weight);
 
 	if(adj_map[src].insert(edge).second)
 	{
@@ -170,8 +191,8 @@ bool Digraph<T, K>::add_edge(int src, int dest, T weight, K data)
 	return false;
 }
 
-template<class T, class K>
-bool Digraph<T, K>::remove_edge(int src, int dest)
+template<class T>
+bool Digraph<T>::remove_edge(int src, int dest)
 {
 	if(!valid(src) || !valid(dest))
 		return false;
@@ -183,7 +204,7 @@ bool Digraph<T, K>::remove_edge(int src, int dest)
 
 	for(auto itr = src_set.begin(); itr != src_set.end(); itr++)
 	{
-		Edge edge = *itr;
+		Edge<T> edge = *itr;
 
 		if(edge.get_src() == src && edge.get_dest() == dest)
 		{
@@ -191,6 +212,7 @@ bool Digraph<T, K>::remove_edge(int src, int dest)
 			e_count--;
 
 			found = true;
+			break;
 		}
 	}
 
@@ -199,11 +221,11 @@ bool Digraph<T, K>::remove_edge(int src, int dest)
 
 	for(auto itr = dest_set.begin(); itr != dest_set.end(); itr++)
 	{
-		Edge edge = *itr;
+		Edge<T> edge = *itr;
 
 		if(edge.get_src() == src && edge.get_dest() == dest)
 		{
-			src_set.erase(itr);
+			dest_set.erase(itr);
 			e_count--;
 
 			return true;
@@ -213,26 +235,41 @@ bool Digraph<T, K>::remove_edge(int src, int dest)
 	return false;
 }
 
-template <class T, class K>
-bool Digraph<T, K>::valid(int vertex)
+template<class T>
+bool Digraph<T>::has_edge(int src, int dest)
 {
-	return vertex >= v_next;
+	if(!valid(src) || !valid(dest))
+		return false;
+
+	for(Edge<T> e : adj_map[src])
+	{
+		if(e.get_dest() == dest)
+			return true;
+	}
+
+	return false;
 }
 
-template<class T, class K>
-int Digraph<T, K>::vertices()
+template <class T>
+bool Digraph<T>::valid(int vertex)
+{
+	return vertex < v_next;
+}
+
+template<class T>
+int Digraph<T>::vertices()
 {
 	return v_count;
 }
 
-template<class T, class K>
-int Digraph<T, K>::edges()
+template<class T>
+int Digraph<T>::edges()
 {
 	return e_count;
 }
 
-template<class T, class K>
-std::unordered_set<Edge<T, K>> Digraph<T, K>::outgoing(int src)
+template<class T>
+std::unordered_set<Edge<T>, EdgeHash<T>> Digraph<T>::outgoing(int src)
 {
 	if(!valid(src))
 		return nullptr;
@@ -240,8 +277,8 @@ std::unordered_set<Edge<T, K>> Digraph<T, K>::outgoing(int src)
 	return adj_map[src];
 }
 
-template<class T, class K>
-std::unordered_set<Edge<T, K>> Digraph<T, K>::incoming(int dest)
+template<class T>
+std::unordered_set<Edge<T>, EdgeHash<T>> Digraph<T>::incoming(int dest)
 {
 	if(!valid(dest))
 		return nullptr;
@@ -249,8 +286,8 @@ std::unordered_set<Edge<T, K>> Digraph<T, K>::incoming(int dest)
 	return in_map[dest];
 }
 
-template<class T, class K>
-int Digraph<T, K>::in_degree(int vertex)
+template<class T>
+int Digraph<T>::indegree(int vertex)
 {
 	if(!valid(vertex))
 		return -1;
@@ -258,8 +295,8 @@ int Digraph<T, K>::in_degree(int vertex)
 	return static_cast<int>(in_map[vertex].size());
 }
 
-template<class T, class K>
-int Digraph<T, K>::out_degree(int vertex)
+template<class T>
+int Digraph<T>::outdegree(int vertex)
 {
 	if(!valid(vertex))
 		return -1;

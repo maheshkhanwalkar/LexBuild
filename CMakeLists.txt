@@ -16,7 +16,7 @@ set(SOURCE_FILES
         FA/NFA.cpp FA/NFA.hpp FA/DFA.cpp FA/DFA.hpp
         Regex/NFAGen.cpp Regex/NFAGen.hpp)
 
-set(TEST_DIGRAPH ${SOURCE_FILES} Test/DigraphTest.cpp)
+set(TEST_DIGRAPH Graph/Digraph.hpp Test/DigraphTest.cpp)
 set(TEST_NFA ${SOURCE_FILES} Test/NFATest.cpp)
 set(TEST_REGEX ${SOURCE_FILES} Test/RegexTest.cpp)
 
