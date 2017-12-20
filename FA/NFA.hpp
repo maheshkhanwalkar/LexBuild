@@ -2,26 +2,22 @@
 #ifndef LEXBUILD_NFA_HPP
 #define LEXBUILD_NFA_HPP
 
-#include "Graph/WeightedDigraph.tpp"
+#include "Graph/Digraph.hpp"
 #include "FA/DFA.hpp"
+
+#include "FA/Edge/NFAWeight.hpp"
 
 #include <memory>
 #include <unordered_set>
 
-enum class Edge_Type
-{
-	NORMAL, EPSILON
-};
-
-class NFA : public WeightedDigraph<std::pair<char, Edge_Type>>
+class NFA : public Digraph<NFAWeight>
 {
 public:
 
 	/**
-	 * Initialize a NFA
-	 * @param s_state - start state
+	 * Initialize the NFA
 	 */
-	explicit NFA(int s_state);
+	explicit NFA();
 
 	/**
 	 * Transform NFA to DFA
@@ -30,10 +26,11 @@ public:
 	std::unique_ptr<DFA> transform();
 
 	/**
-	 * Change the NFA's start state
+	 * Change the NFA start state
 	 * @param n_start - new start state
+	 * @return true, if successful
 	 */
-	void set_start(int n_start);
+	bool set_start(int n_start);
 
 	/**
 	 * Start state of the NFA
@@ -44,8 +41,9 @@ public:
 	/**
 	 * Mark a state as an accept state
 	 * @param state - state to mark
+	 * @return true, if the state was successfully marked
 	 */
-	void add_accept(int state);
+	bool add_accept(int state);
 
 	/**
 	 * Check if a state is an accept state
@@ -79,8 +77,9 @@ public:
 	 *
 	 * @param other - NFA to merge with
 	 * @param where - vertex to attach 'other' to.
+	 * @return true, if the merge was successful
 	 */
-	void merge_at(NFA& other, int where);
+	bool merge_at(NFA& other, int where);
 
 	/**
 	 * Merge an NFA into this graph:
@@ -107,8 +106,10 @@ public:
 	void consolidate();
 
 private:
+	/* Start state */
 	int s_state;
 
+	/* Accept states */
 	std::unordered_set<int> accept;
 
 	/* Compute unique edges of a "DFA" state */

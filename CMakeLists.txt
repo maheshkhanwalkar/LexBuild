@@ -14,7 +14,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 set(SOURCE_FILES
         Graph/Digraph.hpp Graph/Edge.hpp
         FA/NFA.cpp FA/NFA.hpp FA/DFA.cpp FA/DFA.hpp
-        Regex/NFAGen.cpp Regex/NFAGen.hpp)
+        Regex/NFAGen.cpp Regex/NFAGen.hpp FA/Edge/NFAWeight.cpp FA/Edge/NFAWeight.hpp)
 
 set(TEST_DIGRAPH Graph/Digraph.hpp Test/DigraphTest.cpp)
 set(TEST_NFA ${SOURCE_FILES} Test/NFATest.cpp)
