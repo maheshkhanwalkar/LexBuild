@@ -273,7 +273,7 @@ template<class T>
 std::unordered_set<Edge<T>, EdgeHash<T>> Digraph<T>::outgoing(int src)
 {
 	if(!valid(src))
-		return nullptr;
+		return std::unordered_set<Edge<T>, EdgeHash<T>>();
 
 	return adj_map[src];
 }
@@ -282,7 +282,7 @@ template<class T>
 std::unordered_set<Edge<T>, EdgeHash<T>> Digraph<T>::incoming(int dest)
 {
 	if(!valid(dest))
-		return nullptr;
+		return std::unordered_set<Edge<T>, EdgeHash<T>>();
 
 	return in_map[dest];
 }
