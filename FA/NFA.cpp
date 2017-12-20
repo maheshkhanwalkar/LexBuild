@@ -14,7 +14,7 @@ std::unique_ptr<DFA> NFA::transform()
 
 	std::unique_ptr<DFA> result = std::make_unique<DFA>();
 
-	int n_start = make_vertex();
+	int n_start = result->make_vertex();
 	result->set_start(n_start);
 
 	for (auto vertex : start_set)
@@ -55,7 +55,7 @@ std::unique_ptr<DFA> NFA::transform()
 			/* New state ? */
 			if(name_conv.find(total) == name_conv.end())
 			{
-				int vertex = make_vertex();
+				int vertex = result->make_vertex();
 
 				name_conv.insert({total, vertex});
 				ex_queue.push(total);
@@ -148,7 +148,7 @@ bool NFA::merge_at(NFA& other, int where)
 	rename.insert({other.s_state, p_start});
 
 	/* Merge 'other' start state to 'where' */
-	add_edge(where, p_start, NFAWeight(WeightType::EPSILON, 0));
+	add_edge(where, p_start, NFAWeight());
 
 	/* Merge the result of other */
 
@@ -199,7 +199,7 @@ void NFA::merge(NFA& other)
 	/* Merge consolidated accept to 'other' start state */
 	/* TODO should consolidation just point directly to 'other' start? */
 
-	add_edge(*accept.begin(), p_start, NFAWeight(WeightType::EPSILON, 0));
+	add_edge(*accept.begin(), p_start, NFAWeight());
 	accept.clear();
 
 	/* Merge result of other */
@@ -248,7 +248,7 @@ void NFA::consolidate()
 
 	/* Point to new state */
 	for (auto state : accept)
-		add_edge(state, n_state, NFAWeight(WeightType::EPSILON, 0));
+		add_edge(state, n_state, NFAWeight());
 
 	/* Only one accept state */
 	accept.clear();

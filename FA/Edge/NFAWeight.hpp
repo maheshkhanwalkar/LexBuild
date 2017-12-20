@@ -12,16 +12,15 @@ class NFAWeight
 public:
 
 	/**
-	 * Initialize an NFA edge
+	 * Initialize an epsilon NFA edge
 	 */
 	explicit NFAWeight();
 
 	/**
-	 * Initialize an NFA edge
-	 * @param type - type of edge
+	 * Initialize a normal NFA edge
 	 * @param weight - edge weight
 	 */
-	explicit NFAWeight(WeightType type, char weight);
+	explicit NFAWeight(char weight);
 
 	/**
 	 * Get NFA edge transition character

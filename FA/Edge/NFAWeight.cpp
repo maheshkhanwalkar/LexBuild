@@ -7,10 +7,10 @@ NFAWeight::NFAWeight()
 	this->weight = 0;
 }
 
-NFAWeight::NFAWeight(WeightType type, char weight)
+NFAWeight::NFAWeight(char weight)
 {
 	this->weight = weight;
-	this->type = type;
+	this->type = WeightType::NORMAL;
 }
 
 char NFAWeight::get_weight()
