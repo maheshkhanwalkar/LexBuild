@@ -18,7 +18,7 @@ public:
 	/**
 	 * Change the start state of the DFA
 	 * @param n_start - new start state
-	 * @return true if successful
+	 * @return true, if successful
 	 */
 	bool set_start(int n_start);
 
@@ -55,7 +55,7 @@ public:
 	/**
 	 * Mark a state as an accept state
 	 * @param state - state to mark
-	 * @return true if the state was successfully marked
+	 * @return true, if the state was successfully marked
 	 */
 	bool add_accept(int state);
 

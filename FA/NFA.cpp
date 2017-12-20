@@ -2,9 +2,9 @@
 #include "NFA.hpp"
 #include <queue>
 
-NFA::NFA(int s_state)
+NFA::NFA()
 {
-	this->s_state = s_state;
+	this->s_state = make_vertex();
 }
 
 std::unique_ptr<DFA> NFA::transform()
@@ -12,27 +12,27 @@ std::unique_ptr<DFA> NFA::transform()
 	std::unordered_map<std::unordered_set<int>, int, set_hash> name_conv;
 	std::unordered_set<int> start_set = expand(s_state);
 
-	std::unique_ptr<DFA> result = std::make_unique<DFA>(0);
+	std::unique_ptr<DFA> result = std::make_unique<DFA>();
+
+	int n_start = make_vertex();
+	result->set_start(n_start);
 
 	for (auto vertex : start_set)
 	{
 		/* Mark as accept, if an accept state is a part of the set */
 		if (accept.find(vertex) != accept.end())
 		{
-			result->set_accept(0);
+			result->add_accept(n_start);
 			break;
 		}
 	}
 
-
 	/* Perform e-transition expansion on the rest of the graph */
-	int count = 0;
 
 	std::queue<std::unordered_set<int>> ex_queue;
 	ex_queue.push(start_set);
 
-	name_conv.insert({start_set, count});
-	count++;
+	name_conv.insert({start_set, n_start});
 
 	while(!ex_queue.empty())
 	{
@@ -55,9 +55,9 @@ std::unique_ptr<DFA> NFA::transform()
 			/* New state ? */
 			if(name_conv.find(total) == name_conv.end())
 			{
-				name_conv.insert({total, count});
-				count++;
+				int vertex = make_vertex();
 
+				name_conv.insert({total, vertex});
 				ex_queue.push(total);
 			}
 
@@ -69,7 +69,7 @@ std::unique_ptr<DFA> NFA::transform()
 				/* Determine if the expanded state is an accept state */
 				if(accept.find(vertex) != accept.end())
 				{
-					result->set_accept(name_conv[total]);
+					result->add_accept(name_conv[total]);
 					break;
 				}
 			}
@@ -86,15 +86,17 @@ std::unique_ptr<std::unordered_map<char, std::unordered_set<int>>>
 
 	for (auto sub : node)
 	{
-		auto edges = adj_list[sub];
+		auto edges = outgoing(sub);
 
 		for(auto edge : edges)
 		{
 			/* Ignore epsilons */
-			if(edge.second.second == Edge_Type::EPSILON)
+			NFAWeight weight = edge.get_weight();
+
+			if(weight.get_type() == WeightType::EPSILON)
 				continue;
 
-			(*map)[edge.second.first].insert(edge.first);
+			(*map)[weight.get_weight()].insert(edge.get_dest());
 		}
 	}
 
@@ -117,15 +119,17 @@ std::unordered_set<int> NFA::expand(int state)
 		visited.insert(current);
 		result.insert(current);
 
-		const auto& edges = adj_list[current];
+		const auto& edges = outgoing(current);
 
 		for(const auto& edge : edges)
 		{
 			/* Keep adding what we can reach by e-transitions */
-			if(edge.second.second == Edge_Type::EPSILON && visited.find(edge.first) == visited.end())
+			NFAWeight weight = edge.get_weight();
+
+			if(weight.get_type() == WeightType::EPSILON && visited.find(edge.get_dest()) == visited.end())
 			{
-				visited.insert(edge.first);
-				queue.push(edge.first);
+				visited.insert(edge.get_dest());
+				queue.push(edge.get_dest());
 			}
 		}
 	}
@@ -133,27 +137,18 @@ std::unordered_set<int> NFA::expand(int state)
 	return result;
 }
 
-void NFA::merge_at(NFA& other, int where)
+bool NFA::merge_at(NFA& other, int where)
 {
 	std::unordered_map<int, int> rename;
 
-	int p_start;
+	if(!valid(where))
+		return false;
 
-	if (other.s_state >= v_count + 1)
-	{
-		v_count = other.s_state;
-		p_start = v_count;
-	}
-	else
-	{
-		v_count++;
-		p_start = v_count;
-
-		rename.insert({other.s_state, v_count});
-	}
+	int p_start = make_vertex();
+	rename.insert({other.s_state, p_start});
 
 	/* Merge 'other' start state to 'where' */
-	add_edge(where, p_start, {0, Edge_Type::EPSILON});
+	add_edge(where, p_start, NFAWeight(WeightType::EPSILON, 0));
 
 	/* Merge the result of other */
 
@@ -173,19 +168,24 @@ void NFA::merge_at(NFA& other, int where)
 		if(other.is_accept(current))
 			add_accept(rename[current]);
 
-		auto edges = other.adj_list[current];
+		const auto& edges = other.outgoing(current);
 
-		for(auto edge : edges)
+		for(const auto& edge : edges)
 		{
-			if(rename.find(edge.first) == rename.end())
-				rename.insert({edge.first, ++v_count});
+			if(rename.find(edge.get_dest()) == rename.end())
+			{
+				int vertex = make_vertex();
+				rename.insert({edge.get_dest(), vertex});
+			}
 
-			add_edge(rename[current], rename[edge.first], edge.second);
+			add_edge(rename[current], rename[edge.get_dest()], edge.get_weight());
 
-			if (visited.find(edge.first) == visited.end())
-				process.push(edge.first);
+			if (visited.find(edge.get_dest()) == visited.end())
+				process.push(edge.get_dest());
 		}
 	}
+
+	return true;
 }
 
 void NFA::merge(NFA& other)
@@ -193,25 +193,13 @@ void NFA::merge(NFA& other)
 	std::unordered_map<int, int> rename;
 	consolidate();
 
-	int p_start;
-
-	if (other.s_state >= v_count + 1)
-	{
-		v_count = other.s_state;
-		p_start = v_count;
-	}
-	else
-	{
-		v_count++;
-		p_start = v_count;
-
-		rename.insert({other.s_state, v_count});
-	}
+	int p_start = make_vertex();
+	rename.insert({other.s_state, p_start});
 
 	/* Merge consolidated accept to 'other' start state */
 	/* TODO should consolidation just point directly to 'other' start? */
 
-	add_edge(*accept.begin(), p_start, {0, Edge_Type::EPSILON});
+	add_edge(*accept.begin(), p_start, NFAWeight(WeightType::EPSILON, 0));
 	accept.clear();
 
 	/* Merge result of other */
@@ -232,17 +220,20 @@ void NFA::merge(NFA& other)
 		if(other.is_accept(current))
 			add_accept(rename[current]);
 
-		auto edges = other.adj_list[current];
+		const auto& edges = other.outgoing(current);
 
-		for(auto edge : edges)
+		for(auto& edge : edges)
 		{
-			if(rename.find(edge.first) == rename.end())
-				rename.insert({edge.first, ++v_count});
+			if(rename.find(edge.get_dest()) == rename.end())
+			{
+				int vertex = make_vertex();
+				rename.insert({edge.get_dest(), vertex});
+			}
 
-			add_edge(rename[current], rename[edge.first], edge.second);
+			add_edge(rename[current], rename[edge.get_dest()], edge.get_weight());
 
-			if (visited.find(edge.first) == visited.end())
-				process.push(edge.first);
+			if (visited.find(edge.get_dest()) == visited.end())
+				process.push(edge.get_dest());
 		}
 	}
 }
@@ -253,23 +244,23 @@ void NFA::consolidate()
 	if(accept.size() <= 1)
 		return;
 
-	int n_state = v_count + 1;
+	int n_state = make_vertex();
 
 	/* Point to new state */
 	for (auto state : accept)
-		add_edge(state, n_state, {0, Edge_Type::EPSILON});
+		add_edge(state, n_state, NFAWeight(WeightType::EPSILON, 0));
 
 	/* Only one accept state */
 	accept.clear();
 	accept.insert(n_state);
 }
 
-void NFA::add_accept(int state)
+bool NFA::add_accept(int state)
 {
-	if(state > v_count)
-		v_count = state;
+	if(!valid(state))
+		return false;
 
-	accept.insert(state);
+	return accept.insert(state).second;
 }
 
 bool NFA::is_accept(int state)
@@ -277,12 +268,13 @@ bool NFA::is_accept(int state)
 	return accept.find(state) != accept.end();
 }
 
-void NFA::set_start(int n_start)
+bool NFA::set_start(int n_start)
 {
-	if(n_start > v_count)
-		v_count = n_start;
+	if(!valid(n_start))
+		return false;
 
 	s_state = n_start;
+	return true;
 }
 
 int NFA::get_start()
