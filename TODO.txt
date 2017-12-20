@@ -1,9 +1,8 @@
 TODO:
 
 Main tasks:
-1. Implement NFA generation from a regular expression
-2. Regular expression builder
-3. Lexer "API driver" code
+1. Regular expression builder
+2. Lexer "API driver" code
 
 Probably useful tasks:
 1. Add graph searching algorithms to the Weighted digraph
