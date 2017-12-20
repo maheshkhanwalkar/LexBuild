@@ -13,19 +13,19 @@ BOOST_AUTO_TEST_CASE(nfagen_simple)
 
 	for(size_t s = 0; s < regex.size(); s++)
 	{
-		auto edges = result->edges(current);
+		auto edges = result->outgoing(current);
 		BOOST_CHECK(edges.size() == 1);
 
-		auto edge = edges.front();
+		auto edge = (*edges.begin());
 
-		BOOST_CHECK(edge.second.first == regex[s]);
-		BOOST_CHECK(edge.second.second == Edge_Type::NORMAL);
+		BOOST_CHECK(edge.get_weight().get_weight() == regex[s]);
+		BOOST_CHECK(edge.get_weight().get_type() == WeightType::NORMAL);
 
-		current = edge.first;
+		current = edge.get_dest();
 	}
 
 	BOOST_CHECK(result->is_accept(current));
-	BOOST_CHECK(result->edges(current).empty());
+	BOOST_CHECK(result->outdegree(current) == 0);
 }
 
 BOOST_AUTO_TEST_CASE(nfagen_simple_or)
@@ -44,72 +44,79 @@ BOOST_AUTO_TEST_CASE(nfagen_simple_or)
 
 	for(size_t s = 0; s < r2.size(); s++)
 	{
-		auto edges = g2->edges(current);
+		auto edges = g2->outgoing(current);
 		BOOST_CHECK(edges.size() == 1);
 
-		auto edge = edges.front();
+		auto edge = (*edges.begin());
 
-		BOOST_CHECK(edge.second.first == r2[s]);
-		BOOST_CHECK(edge.second.second == Edge_Type::NORMAL);
+		BOOST_CHECK(edge.get_weight().get_weight() == r2[s]);
+		BOOST_CHECK(edge.get_weight().get_type() == WeightType::NORMAL);
 
-		current = edge.first;
+		current = edge.get_dest();
 	}
 
 	BOOST_CHECK(g2->is_accept(current));
-	BOOST_CHECK(g2->edges(current).empty());
+	BOOST_CHECK(g2->outdegree(current) == 0);
 
 	/* Check changes to 'g1' */
 
 	int start = g1->get_start();
-	BOOST_CHECK(g1->edges(start).size() == 2);
+	BOOST_CHECK(g1->outdegree(start) == 2);
 
-	for(auto item : g1->edges(start))
-		BOOST_CHECK(item.second.second == Edge_Type::EPSILON);
+	for(const auto& item : g1->outgoing(start))
+		BOOST_CHECK(item.get_weight().get_type() == WeightType::EPSILON);
 
-	int left = g1->edges(start).front().first;
-	int right = g1->edges(start).back().first;
+	int left = -1, right = -1;
+
+	for(const auto& item : g1->outgoing(start))
+	{
+		if(left == -1)
+			left = item.get_dest();
+		else
+			right = item.get_dest();
+	}
 
 	for(size_t s = 0; s < r1.size(); s++)
 	{
-		auto edges = g1->edges(left);
+		auto edges = g1->outgoing(left);
 		BOOST_CHECK(edges.size() == 1);
 
-		auto edge = edges.front();
+		auto edge = *edges.begin();
 
-		BOOST_CHECK(edge.second.first == r1[s]);
-		BOOST_CHECK(edge.second.second == Edge_Type::NORMAL);
+		BOOST_CHECK(edge.get_weight().get_weight() == r1[s]);
+		BOOST_CHECK(edge.get_weight().get_type() == WeightType::NORMAL);
 
-		left = edge.first;
+		left = edge.get_dest();
 	}
 
 	BOOST_CHECK(!g1->is_accept(left));
-	BOOST_CHECK(g1->edges(left).size() == 1);
+	BOOST_CHECK(g1->outdegree(left) == 1);
 
-	int a_left = g1->edges(left).front().first;
+	int a_left = (*g1->outgoing(left).begin()).get_dest();
 
 	BOOST_CHECK(g1->is_accept(a_left));
-	BOOST_CHECK(g1->edges(a_left).empty());
+	BOOST_CHECK(g1->outdegree(a_left) == 0);
 
 	for(size_t s = 0; s < r2.size(); s++)
 	{
-		auto edges = g1->edges(right);
+		auto edges = g1->outgoing(right);
 		BOOST_CHECK(edges.size() == 1);
 
-		auto edge = edges.front();
+		auto edge = *edges.begin();
 
-		BOOST_CHECK(edge.second.first == r2[s]);
-		BOOST_CHECK(edge.second.second == Edge_Type::NORMAL);
+		BOOST_CHECK(edge.get_weight().get_weight() == r2[s]);
+		BOOST_CHECK(edge.get_weight().get_type() == WeightType::NORMAL);
 
-		right = edge.first;
+		right = edge.get_dest();
 	}
 
 	BOOST_CHECK(!g1->is_accept(right));
-	BOOST_CHECK(g1->edges(right).size() == 1);
+	BOOST_CHECK(g1->outdegree(right) == 1);
 
-	int a_right = g1->edges(right).front().first;
+	int a_right = (*g1->outgoing(right).begin()).get_dest();
 
 	BOOST_CHECK(g1->is_accept(a_right));
-	BOOST_CHECK(g1->edges(a_right).empty());
+	BOOST_CHECK(g1->outdegree(a_right) == 0);
 
 	BOOST_CHECK(a_left == a_right);
 }

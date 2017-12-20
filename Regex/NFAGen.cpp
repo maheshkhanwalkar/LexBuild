@@ -25,7 +25,6 @@ void NFAGen::makeAnd(NFA& a, NFA& b)
 	return a.merge(b);
 }
 
-
 void NFAGen::makeOr(NFA& a, NFA& b)
 {
 	int n_start = a.make_vertex();
