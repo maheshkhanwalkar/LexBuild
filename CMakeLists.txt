@@ -22,6 +22,7 @@ set(SOURCE_FILES
 set(TEST_DIGRAPH Graph/Digraph.hpp Test/DigraphTest.cpp)
 set(TEST_NFA ${SOURCE_FILES} Test/NFATest.cpp)
 set(TEST_REGEX ${SOURCE_FILES} Test/RegexTest.cpp)
+set(TEST_BUILDER ${SOURCE_FILES} Test/BuilderTest.cpp)
 
 include_directories(.)
 add_library(lexbuild STATIC ${SOURCE_FILES})
@@ -29,7 +30,9 @@ add_library(lexbuild STATIC ${SOURCE_FILES})
 add_executable(lextest-digraph ${TEST_DIGRAPH})
 add_executable(lextest-nfa ${TEST_NFA})
 add_executable(lextest-regex ${TEST_REGEX})
+add_executable(lextest-builder ${TEST_BUILDER})
 
 add_test(NAME lextest-digraph COMMAND lextest-digraph)
 add_test(NAME lextest-nfa COMMAND lextest-nfa)
 add_test(NAME lextest-regex COMMAND lextest-regex)
+add_test(NAME lextest-builder COMMAND lextest-builder)

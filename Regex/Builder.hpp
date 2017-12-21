@@ -18,11 +18,10 @@ public:
 	 * Create a symbolic Regex representation
 	 * @return the regular expression
 	 */
-	const Regex& create();
+	std::unique_ptr<Regex> create();
 
 private:
 	std::string regex;
-	std::unique_ptr<Regex> result;
 
 	/* Regex parsing helper functions */
 	std::unique_ptr<Regex> parse_regex(size_t& pos);

@@ -5,15 +5,12 @@
 Builder::Builder(std::string regex)
 {
 	this->regex = regex;
-	this->result = nullptr;
 }
 
-const Regex& Builder::create()
+std::unique_ptr<Regex> Builder::create()
 {
 	size_t pos = 0;
-	this->result = parse_regex(pos);
-
-	return *result;
+	return parse_regex(pos);
 }
 
 std::unique_ptr<Regex> Builder::parse_regex(size_t& pos)
@@ -28,10 +25,6 @@ std::unique_ptr<Regex> Builder::parse_regex(size_t& pos)
 			std::unique_ptr<Regex> result(new OrRegex(std::move(term), std::move(rhs)));
 
 			return result;
-		}
-		else
-		{
-			return nullptr;
 		}
 	}
 
@@ -54,6 +47,10 @@ std::unique_ptr<Regex> Builder::parse_term(size_t& pos)
 		}
 		else
 		{
+			/* No more factors */
+			if(regex[pos] == ')' || regex[pos] == '|')
+				return result;
+
 			std::unique_ptr<Regex> rhs = parse_factor(pos);
 			std::unique_ptr<Regex> combined(new AndRegex(std::move(result), std::move(rhs)));
 
@@ -75,7 +72,7 @@ std::unique_ptr<Regex> Builder::parse_factor(size_t& pos)
 		return base;
 
 	/* Consume all the stars */
-	while(regex[pos] == '*')
+	while(regex[pos] == '*' && pos < regex.size())
 		pos++;
 
 	std::unique_ptr<Regex> result(new StarRegex(std::move(base)));
@@ -96,7 +93,7 @@ std::unique_ptr<Regex> Builder::parse_base(size_t& pos)
 		/* Consume all the normal characters */
 		std::string full;
 
-		while(!is_op(regex[pos]))
+		while(!is_op(regex[pos]) && pos < regex.size())
 		{
 			full += std::string(1, regex[pos]);
 			pos++;
