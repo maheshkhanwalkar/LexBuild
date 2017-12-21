@@ -17,7 +17,7 @@ set(SOURCE_FILES
         Gen/NFAGen.cpp Gen/NFAGen.hpp
         FA/Edge/NFAWeight.cpp FA/Edge/NFAWeight.hpp
         Lexer/Lexer.hpp Lexer/RuleInfo.hpp
-        Regex/Regex.hpp)
+        Regex/Regex.hpp Regex/Builder.cpp Regex/Builder.hpp)
 
 set(TEST_DIGRAPH Graph/Digraph.hpp Test/DigraphTest.cpp)
 set(TEST_NFA ${SOURCE_FILES} Test/NFATest.cpp)

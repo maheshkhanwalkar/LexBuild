@@ -1,5 +1,9 @@
 TODO:
 
+In progress:
+1. Regular expression builder
+2. Lexer "API driver" code
+
 Main tasks:
 1. Regular expression builder
 2. Lexer "API driver" code

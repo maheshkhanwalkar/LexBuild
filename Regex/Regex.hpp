@@ -41,7 +41,7 @@ private:
 	RegexType type;
 };
 
-class SimpleRegex : Regex
+class SimpleRegex : public Regex
 {
 public:
 	explicit SimpleRegex(std::string data) : Regex(RegexType::SIMPLE)
@@ -66,87 +66,87 @@ private:
 };
 
 
-class OrRegex : Regex
+class OrRegex : public Regex
 {
 public:
-	explicit OrRegex(const Regex& lhs, const Regex& rhs)
-		: Regex(RegexType::OR), lhs(lhs), rhs(rhs) {}
+	explicit OrRegex(std::unique_ptr<Regex> lhs, std::unique_ptr<Regex> rhs)
+		: Regex(RegexType::OR), lhs(std::move(lhs)), rhs(std::move(rhs)) {}
 
 	const Regex& get_lhs() const
 	{
-		return lhs;
+		return *lhs;
 	}
 
 	const Regex& get_rhs() const
 	{
-		return rhs;
+		return *rhs;
 	}
 
 	NFA generate() const override
 	{
-		NFA left = lhs.generate();
-		NFA right = rhs.generate();
+		NFA left = lhs->generate();
+		NFA right = rhs->generate();
 
 		NFAGen::makeOr(left, right);
 		return left;
 	}
 
 private:
-	const Regex& lhs;
-	const Regex& rhs;
+	std::unique_ptr<Regex> lhs;
+	std::unique_ptr<Regex> rhs;
 };
 
-class AndRegex : Regex
+class AndRegex : public Regex
 {
 public:
-	explicit AndRegex(const Regex& lhs, const Regex& rhs)
-		: Regex(RegexType::AND), lhs(lhs), rhs(rhs) {}
+	explicit AndRegex(std::unique_ptr<Regex> lhs, std::unique_ptr<Regex> rhs)
+		: Regex(RegexType::AND), lhs(std::move(lhs)), rhs(std::move(rhs)) {}
 
 	const Regex& get_lhs() const
 	{
-		return lhs;
+		return *lhs;
 	}
 
 	const Regex& get_rhs() const
 	{
-		return rhs;
+		return *rhs;
 	}
 
 	NFA generate() const override
 	{
-		NFA left = lhs.generate();
-		NFA right = rhs.generate();
+		NFA left = lhs->generate();
+		NFA right = rhs->generate();
 
 		NFAGen::makeAnd(left, right);
 		return left;
 	}
 
 private:
-	const Regex& lhs;
-	const Regex& rhs;
+	std::unique_ptr<Regex> lhs;
+	std::unique_ptr<Regex> rhs;
 };
 
-class StarRegex : Regex
+class StarRegex : public Regex
 {
 public:
-	explicit StarRegex(const Regex& target)
-		: Regex(RegexType::STAR), target(target) {}
+	explicit StarRegex(std::unique_ptr<Regex> src)
+		: Regex(RegexType::STAR), target(std::move(src)) {}
 
 	const Regex& get_target() const
 	{
-		return target;
+		return *target;
 	}
 
 	NFA generate() const override
 	{
-		NFA base = target.generate();
+		NFA base = target->generate();
 		NFAGen::makeStar(base);
 
 		return base;
 	}
 
 private:
-	const Regex& target;
+	std::unique_ptr<Regex> target;
 };
 
 #endif
