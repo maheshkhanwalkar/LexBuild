@@ -14,3 +14,4 @@ Probably useful tasks:
 2. More unit tests (maybe automated ones?)
 3. Graph comparison code (would make testing *much* better)
 4. Make CMakeLists.txt more modular
+5. Add support for regex syntactical sugar (shorthands)

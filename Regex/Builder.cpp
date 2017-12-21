@@ -33,7 +33,7 @@ std::unique_ptr<Regex> Builder::parse_regex(size_t& pos)
 
 std::unique_ptr<Regex> Builder::parse_term(size_t& pos)
 {
-	/* Empty */
+	/* Nothing more to parse */
 	if(pos >= regex.size())
 		return std::unique_ptr<Regex>(new SimpleRegex(""));
 
@@ -52,9 +52,21 @@ std::unique_ptr<Regex> Builder::parse_term(size_t& pos)
 				return result;
 
 			std::unique_ptr<Regex> rhs = parse_factor(pos);
-			std::unique_ptr<Regex> combined(new AndRegex(std::move(result), std::move(rhs)));
 
-			result = std::move(combined);
+			/* Merge simple regular expressions together (prevent deep nesting) */
+			if(rhs->get_type() == RegexType::SIMPLE && result->get_type() == RegexType::SIMPLE)
+			{
+				SimpleRegex* res_equiv = dynamic_cast<SimpleRegex*>(result.get());
+				SimpleRegex* rhs_equiv = dynamic_cast<SimpleRegex*>(rhs.get());
+
+				std::unique_ptr<Regex> combine(new SimpleRegex(res_equiv->get_string() + rhs_equiv->get_string()));
+				result = std::move(combine);
+			}
+			else
+			{
+				std::unique_ptr<Regex> combined(new AndRegex(std::move(result), std::move(rhs)));
+				result = std::move(combined);
+			}
 		}
 	}
 
@@ -90,18 +102,11 @@ std::unique_ptr<Regex> Builder::parse_base(size_t& pos)
 	}
 	else
 	{
-		/* Consume all the normal characters */
-		std::string full;
+		std::unique_ptr<Regex> result(new SimpleRegex(std::string(1, regex[pos])));
+		pos++;
 
-		while(!is_op(regex[pos]) && pos < regex.size())
-		{
-			full += std::string(1, regex[pos]);
-			pos++;
-		}
-
-		return std::unique_ptr<Regex>(new SimpleRegex(full));
+		return result;
 	}
-
 }
 
 bool Builder::is_op(char c)
