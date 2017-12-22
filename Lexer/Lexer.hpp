@@ -58,6 +58,7 @@ void Lexer<T>::lex(std::string& data, std::vector<std::unique_ptr<T>>& result)
 	for(size_t s = 0; s < data.size(); s++)
 	{
 		std::vector<size_t> can_accept;
+		size_t max_len = 0;
 
 		for(size_t u = 0; u < regex_vec.size(); u++)
 		{
@@ -70,22 +71,29 @@ void Lexer<T>::lex(std::string& data, std::vector<std::unique_ptr<T>>& result)
 
 			/* At accept? */
 			if(dfa.at_accept())
+			{
 				can_accept.push_back(u);
+
+				if(dfa.get_data()->size() > max_len)
+					max_len = dfa.get_data()->size();
+			}
 		}
 
+		/* TODO handle if nothing moved (e.g. case fallthrough) */
 		if(can_accept.empty())
 			continue;
 
 		std::vector<size_t> shift;
 
-		for(size_t u = 0; u < can_accept.size(); u++)
+		for(size_t u = 0; u < regex_vec.size(); u++)
 		{
 			if(s + 1 < data.size())
 			{
-				DFA& dfa = regex_vec[can_accept[u]].get_dfa();
+				DFA& dfa = regex_vec[u].get_dfa();
 
-				if(dfa.peek(data[s+1]))
-					shift.push_back(can_accept[u]);
+				/* Only shift if we can match more characters */
+				if(dfa.peek(data[s+1]) && dfa.get_data()->size() + 1 > max_len)
+					shift.push_back(u);
 			}
 		}
 
@@ -110,7 +118,16 @@ void Lexer<T>::lex(std::string& data, std::vector<std::unique_ptr<T>>& result)
 			auto f_apply = info.get_func();
 
 			f_apply(*info.get_dfa().get_data(), result);
-			info.get_dfa().reset();
+
+			/* Reset everything */
+			for(size_t u = 0; u < regex_vec.size(); u++)
+				regex_vec[u].get_dfa().reset();
+		}
+		else
+		{
+			/* Reset accept DFAs (since we aren't going to accept, yet) */
+			for(size_t u = 0; u < can_accept.size(); u++)
+				regex_vec[can_accept[u]].get_dfa().reset();
 		}
 	}
 }
