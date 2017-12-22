@@ -5,6 +5,7 @@
 #include <string>
 #include <functional>
 #include <unordered_map>
+#include <iostream>
 
 #include "FA/DFA.hpp"
 #include "Lexer/RuleInfo.hpp"
@@ -31,8 +32,9 @@ public:
 	 * Lexically analyze the data/file
 	 * @param data - data to process
 	 * @param result - vector to store resulting tokens
+	 * @return if lexing was successful
 	 */
-	void lex(std::string& data, std::vector<std::unique_ptr<T>>& result);
+	bool lex(std::string& data, std::vector<std::unique_ptr<T>>& result);
 
 private:
 
@@ -53,21 +55,28 @@ void Lexer<T>::add_rule(std::string regex, int priority,
 }
 
 template<class T>
-void Lexer<T>::lex(std::string& data, std::vector<std::unique_ptr<T>>& result)
+bool Lexer<T>::lex(std::string& data, std::vector<std::unique_ptr<T>>& result)
 {
 	for(size_t s = 0; s < data.size(); s++)
 	{
 		std::vector<size_t> can_accept;
 		size_t max_len = 0;
 
+		bool moved = false;
+
 		for(size_t u = 0; u < regex_vec.size(); u++)
 		{
 			DFA& dfa = regex_vec[u].get_dfa();
 
 			if(dfa.peek(data[s]))
+			{
 				dfa.consume(data[s]);
+				moved = true;
+			}
 			else
+			{
 				dfa.reset();
+			}
 
 			/* At accept? */
 			if(dfa.at_accept())
@@ -79,9 +88,13 @@ void Lexer<T>::lex(std::string& data, std::vector<std::unique_ptr<T>>& result)
 			}
 		}
 
-		/* TODO handle if nothing moved (e.g. case fallthrough) */
 		if(can_accept.empty())
+		{
+			if(!moved)
+				return false;
+
 			continue;
+		}
 
 		std::vector<size_t> shift;
 
@@ -130,6 +143,8 @@ void Lexer<T>::lex(std::string& data, std::vector<std::unique_ptr<T>>& result)
 				regex_vec[can_accept[u]].get_dfa().reset();
 		}
 	}
+
+	return true;
 }
 
 

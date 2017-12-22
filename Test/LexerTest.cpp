@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(lexer_simple)
 	std::string str = "abc   \tabc abc\n\nabc";
 	std::vector<std::unique_ptr<int>> result;
 
-	lexer.lex(str, result);
+	BOOST_CHECK(lexer.lex(str, result));
 	BOOST_CHECK(result.size() == 4);
 
 	for(size_t s = 0; s < result.size(); s++)
@@ -64,10 +64,28 @@ BOOST_AUTO_TEST_CASE(lexer_shift_rule)
 	std::string str = "int intabc";
 	std::vector<std::unique_ptr<int>> result;
 
-	lexer.lex(str, result);
+	BOOST_CHECK(lexer.lex(str, result));
 	BOOST_CHECK(result.size() == 2);
 
 	BOOST_CHECK(*result[0] == 1);
 	BOOST_CHECK(*result[1] == 2);
+}
+
+BOOST_AUTO_TEST_CASE(lexer_fallthrough)
+{
+	Lexer<int> lexer;
+
+	lexer.add_rule("abc", 10, [](std::string str,
+								 std::vector<std::unique_ptr<int>>& vec) -> void
+	{
+		UNUSED(str);
+		vec.push_back(std::make_unique<int>(1));
+	});
+
+	std::string str = "abz";
+	std::vector<std::unique_ptr<int>> result;
+
+	BOOST_CHECK(!lexer.lex(str, result));
+	BOOST_CHECK(result.size() == 0);
 }
 
