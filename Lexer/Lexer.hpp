@@ -47,7 +47,7 @@ void Lexer<T>::add_rule(std::string regex, int priority, std::function<std::uniq
 	std::unique_ptr<Regex> symbolic = builder.create();
 	std::unique_ptr<DFA> result = symbolic->generate().transform();
 
-	regex_vec.push_back(RuleInfo(std::move(result), on_accept, priority));
+	regex_vec.push_back(RuleInfo<T>(std::move(result), on_accept, priority));
 }
 
 template<class T>
@@ -65,11 +65,16 @@ std::vector<std::unique_ptr<T>> Lexer<T>::lex(std::string& data)
 
 			if(dfa.peek(data[s]))
 				dfa.consume(data[s]);
+			else
+				dfa.reset();
 
 			/* At accept? */
 			if(dfa.at_accept())
 				can_accept.push_back(u);
 		}
+
+		if(can_accept.empty())
+			continue;
 
 		std::vector<size_t> shift;
 
@@ -90,22 +95,23 @@ std::vector<std::unique_ptr<T>> Lexer<T>::lex(std::string& data)
 		/* Break tie based on priority */
 		if(shift.empty())
 		{
-			for(size_t u = 0; u < shift.size(); u++)
+			for(size_t u = 0; u < can_accept.size(); u++)
 			{
-				int curr = regex_vec[shift[u]].get_priority();
+				int curr = regex_vec[can_accept[u]].get_priority();
 
 				if(curr > priority)
 				{
 					priority = curr;
-					pos = shift[u];
+					pos = can_accept[u];
 				}
 			}
+
+			RuleInfo<T>& info = regex_vec[pos];
+			auto f_apply = info.get_func();
+
+			result.push_back(f_apply(*info.get_dfa().get_data()));
+			info.get_dfa().reset();
 		}
-
-		RuleInfo info = regex_vec[pos];
-		auto f_apply = info.get_func();
-
-		result.push_back(f_apply(*info.get_dfa().get_data()));
 	}
 
 	return result;
