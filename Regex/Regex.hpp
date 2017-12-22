@@ -22,6 +22,8 @@ public:
 		this->type = type;
 	}
 
+	virtual ~Regex() = default;
+
 	/**
 	 * Get the regex type
 	 * @return the type

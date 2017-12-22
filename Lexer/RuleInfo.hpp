@@ -17,7 +17,7 @@ public:
 	 * @param priority - rule priority
 	 */
 	RuleInfo(DFA dfa,
-		std::function<T(std::string)> on_apply, int priority);
+		std::function<std::unique_ptr<T>(std::string)> on_apply, int priority);
 
 	/**
 	 * Get the DFA
@@ -29,7 +29,7 @@ public:
 	 * Get the function
 	 * @return the function
 	 */
-	std::function<T(std::string)> get_func();
+	std::function<std::unique_ptr<T>(std::string)> get_func();
 
 	/**
 	 * Get rule priority
@@ -39,12 +39,12 @@ public:
 
 private:
 	DFA dfa;
-	std::function<T(std::string)> on_apply;
+	std::function<std::unique_ptr<T>(std::string)> on_apply;
 	int priority;
 };
 
 template<class T>
-RuleInfo<T>::RuleInfo(DFA dfa, std::function<T(std::string)> on_apply, int priority)
+RuleInfo<T>::RuleInfo(DFA dfa, std::function<std::unique_ptr<T>(std::string)> on_apply, int priority)
 {
 	this->dfa = dfa;
 	this->on_apply = on_apply;
@@ -58,7 +58,7 @@ DFA RuleInfo<T>::get_dfa()
 }
 
 template<class T>
-std::function<T(std::string)> RuleInfo<T>::get_func()
+std::function<std::unique_ptr<T>(std::string)> RuleInfo<T>::get_func()
 {
 	return on_apply;
 }

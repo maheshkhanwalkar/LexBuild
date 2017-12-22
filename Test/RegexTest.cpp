@@ -2,7 +2,7 @@
 #define BOOST_TEST_MODULE RegexTest
 #include <boost/test/included/unit_test.hpp>
 
-#include "Regex/NFAGen.hpp"
+#include "Gen/NFAGen.hpp"
 
 BOOST_AUTO_TEST_CASE(nfagen_simple)
 {
