@@ -24,14 +24,15 @@ public:
 	 * @param priority - rule priority to break match ties (larger is higher priority)
 	 * @param on_accept - function to apply when the regex is matched
 	 */
-	void add_rule(std::string regex, int priority, std::function<std::unique_ptr<T>(std::string)> on_accept);
+	void add_rule(std::string regex, int priority,
+				  std::function<void(std::string, std::vector<std::unique_ptr<T>>&)> on_accept);
 
 	/**
 	 * Lexically analyze the data/file
 	 * @param data - data to process
-	 * @return a vector containing the results of lexical analysis (tokens)
+	 * @param result - vector to store resulting tokens
 	 */
-	std::vector<std::unique_ptr<T>> lex(std::string& data);
+	void lex(std::string& data, std::vector<std::unique_ptr<T>>& result);
 
 private:
 
@@ -40,7 +41,8 @@ private:
 };
 
 template<class T>
-void Lexer<T>::add_rule(std::string regex, int priority, std::function<std::unique_ptr<T>(std::string)> on_accept)
+void Lexer<T>::add_rule(std::string regex, int priority,
+		std::function<void(std::string, std::vector<std::unique_ptr<T>>&)> on_accept)
 {
 	Builder builder(regex);
 
@@ -51,10 +53,8 @@ void Lexer<T>::add_rule(std::string regex, int priority, std::function<std::uniq
 }
 
 template<class T>
-std::vector<std::unique_ptr<T>> Lexer<T>::lex(std::string& data)
+void Lexer<T>::lex(std::string& data, std::vector<std::unique_ptr<T>>& result)
 {
-	std::vector<std::unique_ptr<T>> result;
-
 	for(size_t s = 0; s < data.size(); s++)
 	{
 		std::vector<size_t> can_accept;
@@ -109,12 +109,10 @@ std::vector<std::unique_ptr<T>> Lexer<T>::lex(std::string& data)
 			RuleInfo<T>& info = regex_vec[pos];
 			auto f_apply = info.get_func();
 
-			result.push_back(f_apply(*info.get_dfa().get_data()));
+			f_apply(*info.get_dfa().get_data(), result);
 			info.get_dfa().reset();
 		}
 	}
-
-	return result;
 }
 
 

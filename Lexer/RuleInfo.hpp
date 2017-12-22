@@ -17,7 +17,7 @@ public:
 	 * @param priority - rule priority (higher is greater)
 	 */
 	RuleInfo(std::unique_ptr<DFA> dfa,
-		std::function<std::unique_ptr<T>(std::string)> on_apply, int priority);
+		std::function<void(std::string, std::vector<std::unique_ptr<T>>&)> on_apply, int priority);
 
 	/**
 	 * Get the DFA
@@ -29,7 +29,7 @@ public:
 	 * Get the function
 	 * @return the function
 	 */
-	std::function<std::unique_ptr<T>(std::string)> get_func();
+	std::function<void(std::string, std::vector<std::unique_ptr<T>>&)> get_func();
 
 	/**
 	 * Get rule priority
@@ -39,12 +39,13 @@ public:
 
 private:
 	std::unique_ptr<DFA> dfa;
-	std::function<std::unique_ptr<T>(std::string)> on_apply;
+	std::function<void(std::string, std::vector<std::unique_ptr<T>>&)> on_apply;
 	int priority;
 };
 
 template<class T>
-RuleInfo<T>::RuleInfo(std::unique_ptr<DFA> dfa, std::function<std::unique_ptr<T>(std::string)> on_apply, int priority)
+RuleInfo<T>::RuleInfo(std::unique_ptr<DFA> dfa,
+		std::function<void(std::string, std::vector<std::unique_ptr<T>>&)> on_apply, int priority)
 {
 	this->dfa = std::move(dfa);
 	this->on_apply = on_apply;
@@ -58,7 +59,7 @@ DFA& RuleInfo<T>::get_dfa()
 }
 
 template<class T>
-std::function<std::unique_ptr<T>(std::string)> RuleInfo<T>::get_func()
+std::function<void(std::string, std::vector<std::unique_ptr<T>>&)> RuleInfo<T>::get_func()
 {
 	return on_apply;
 }
