@@ -8,7 +8,7 @@ set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wdocumentation -stdlib=libc++")
 
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -fno-limit-debug-info -glldb -fsanitize=address")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -fno-limit-debug-info -glldb")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 
 set(SOURCE_FILES

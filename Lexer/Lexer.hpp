@@ -138,14 +138,21 @@ bool Lexer<T>::lex(std::string& data, std::vector<std::unique_ptr<T>>& result)
 		}
 		else
 		{
-			/* Reset accept DFAs (since we aren't going to accept, yet) */
+			/* Reset accept DFAs that can't shift */
 			for(size_t u = 0; u < can_accept.size(); u++)
-				regex_vec[can_accept[u]].get_dfa().reset();
+			{
+				DFA& dfa = regex_vec[can_accept[u]].get_dfa();
+
+				/* Reset accept DFAs that can't shift */
+				if(!dfa.peek(data[s+1]))
+				{
+					regex_vec[can_accept[u]].get_dfa().reset();
+				}
+			}
 		}
 	}
 
 	return true;
 }
-
 
 #endif

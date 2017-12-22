@@ -89,3 +89,50 @@ BOOST_AUTO_TEST_CASE(lexer_fallthrough)
 	BOOST_CHECK(result.size() == 0);
 }
 
+BOOST_AUTO_TEST_CASE(lexer_priority)
+{
+	Lexer<int> lexer;
+
+	lexer.add_rule("abc", 5, [](std::string str,
+								 std::vector<std::unique_ptr<int>>& vec) -> void
+	{
+		UNUSED(str);
+		vec.push_back(std::make_unique<int>(1));
+	});
+
+	lexer.add_rule("abc", 10, [](std::string str,
+								 std::vector<std::unique_ptr<int>>& vec) -> void
+	{
+		UNUSED(str);
+		vec.push_back(std::make_unique<int>(2));
+	});
+
+	std::string str = "abcabc";
+	std::vector<std::unique_ptr<int>> result;
+
+	BOOST_CHECK(lexer.lex(str, result));
+	BOOST_CHECK(result.size() == 2);
+
+	BOOST_CHECK(*result[0] == 2);
+	BOOST_CHECK(*result[1] == 2);
+}
+
+BOOST_AUTO_TEST_CASE(lexer_greedy_rule)
+{
+	Lexer<int> lexer;
+
+	lexer.add_rule("(abc)*", 5, [](std::string str,
+								std::vector<std::unique_ptr<int>>& vec) -> void
+	{
+		UNUSED(str);
+		vec.push_back(std::make_unique<int>(1));
+	});
+
+	std::string str = "abcabcabcabc";
+	std::vector<std::unique_ptr<int>> result;
+
+	BOOST_CHECK(lexer.lex(str, result));
+	BOOST_CHECK(result.size() == 1);
+
+	BOOST_CHECK(*result[0] == 1);
+}
