@@ -77,3 +77,14 @@ For example, if there is a regular expression for variable names, like: [a-zA-Z]
 Which one should be chosen? The one with the higher priority (it would make sense for "int" to have a higher priority, else it
 would never be accepted). 
 
+Another case to consider is when should a regular expression be matched, which plays into the principle that regular expressions
+try to match as much as possible. 
+
+Once again consider the regular expressions: [a-zA-Z]+ and int. On encountering the text: "intxyz", what exactly should happen?
+After processing 'i', 'n', and 't', the Lexer has a choice to make: accept the "int" regex and call the corresponding `on_accept`
+function, or continue reading characters (thereby matching "intxyz"), which would be accepted by [a-zA-Z]+. 
+
+The Lexer accurately simulates the greedy matching behavior and will proceed to continue reading more characters in this case, so
+[a-zA-Z]+ would match. However, if "int " was the text, then neither 'int' nor [a-zA-Z]+ could continue matching. Therefore, it
+would delegate back to priorities to figure out what to accept. 
+
