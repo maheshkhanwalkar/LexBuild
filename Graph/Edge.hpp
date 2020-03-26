@@ -51,7 +51,7 @@ template <class T>
 class EdgeHash
 {
 public:
-	size_t operator() (const Edge<T>& edge)
+	size_t operator() (const Edge<T>& edge) const
 	{
 		size_t seed = 0;
 
@@ -62,10 +62,10 @@ public:
 	}
 
 private:
-	inline void hash_combine(size_t& seed, int next)
+	inline void hash_combine(size_t& seed, int next) const
 	{
 		std::hash<int> h_func;
-		seed ^= h_func(next) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+		seed ^= h_func(next) + 0x9e3779b9 + (seed << 6U) + (seed >> 2U);
 	}
 };
 
