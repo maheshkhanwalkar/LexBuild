@@ -71,12 +71,7 @@ private:
 
 template <class T>
 Edge<T>::Edge(int src, int dest, T weight)
-{
-	this->src = src;
-	this->dest = dest;
-
-	this->weight = weight;
-}
+    : src(src), dest(dest), weight(weight) { }
 
 template<class T>
 int Edge<T>::get_src() const
