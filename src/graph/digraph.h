@@ -1,7 +1,6 @@
 #pragma once
 
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "edge.h"
@@ -14,7 +13,11 @@
 template <typename T, typename W>
 class digraph
 {
+public:
+    explicit digraph();
+
 private:
-    std::unordered_map<T, std::vector<edge<T, W> > > adj_map{};
+    std::unordered_multimap<T, edge<T, W> > adj_map{};
 };
 
+#include "digraph.tpp"

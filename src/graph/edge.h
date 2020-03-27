@@ -35,6 +35,13 @@ public:
      */
     const W& get_weight() const;
 
+    /**
+     * Equality operator
+     * @param rhs - other edge to compare to
+     * @return true, if the edges are the same, false otherwise
+     */
+    bool operator==(const edge<T,W>& rhs) const;
+
 private:
     T start, end;
     W weight;
