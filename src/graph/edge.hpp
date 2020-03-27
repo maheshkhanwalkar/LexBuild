@@ -43,6 +43,14 @@ public:
     }
 
     /**
+     * Update the edge weight
+     * @param n_weight - new weight
+     */
+    void update_weight(W n_weight) {
+        this->weight = n_weight;
+    }
+
+    /**
      * Equality operator
      * @param rhs - other edge to compare to
      * @return true, if the edges are the same, false otherwise
