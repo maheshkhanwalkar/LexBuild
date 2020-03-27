@@ -4,8 +4,6 @@
 #include <unordered_set>
 #include <vector>
 
-#include "edge.hpp"
-
 /**
  * Digraph representation
  * @tparam T - vertex type
@@ -29,26 +27,7 @@ public:
     void add_edge(T start, T end, W weight)
     {
         adj_map[start].insert(end);
-        weight_map[start][end] = weight;
-    }
-
-    /**
-     * Update the edge start-->end with a new weight
-     * @param start - starting vertex
-     * @param end - ending vertex
-     * @param n_weight - new edge weight
-     */
-    void update_edge(T start, T end, W n_weight)
-    {
-        std::unordered_set<T>& out = adj_map[start];
-
-        // Edge does not even exist
-        if(out.find(end) == out.end()) {
-            return;
-        }
-
-        // Update the weight in the weight map
-        weight_map[start][end] = n_weight;
+        weight_map[start][weight] = end;
     }
 
     /**
@@ -65,5 +44,5 @@ public:
 
 private:
     std::unordered_map<T, std::unordered_set<T> > adj_map{};
-    std::unordered_map<T, std::unordered_map<T, W> > weight_map{};
+    std::unordered_map<T, std::unordered_map<W, T> > weight_map{};
 };
