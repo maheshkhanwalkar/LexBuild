@@ -28,5 +28,12 @@ NFA NFA::make_simple(const std::string& word)
     // NFA composition-based algorithms
     result.accept.insert(1);
 
+    // Add the allocated vertices to the used-vertex list and update the
+    // vertex allocation counter -- these are used in more complicated NFA
+    // construction schemes
+    result.v_list.push_back(0);
+    result.v_list.push_back(1);
+    result.v_count = 2;
+
     return result;
 }

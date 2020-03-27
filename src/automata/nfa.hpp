@@ -1,5 +1,8 @@
 #pragma once
+
 #include <string>
+#include <unordered_set>
+#include <vector>
 
 #include "src/graph/digraph.hpp"
 
@@ -21,5 +24,7 @@ public:
 private:
     digraph<int, std::string> graph{};
     std::unordered_set<int> accept{};
-    int start{-1};
+    std::vector<int> v_list{};
+
+    int start{-1}, v_count{0};
 };
