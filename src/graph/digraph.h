@@ -14,10 +14,11 @@ template <typename T, typename W>
 class digraph
 {
 public:
-    explicit digraph();
+    /**
+     * Construct an empty digraph
+     */
+    explicit digraph() = default;
 
 private:
     std::unordered_multimap<T, edge<T, W> > adj_map{};
 };
-
-#include "digraph.tpp"

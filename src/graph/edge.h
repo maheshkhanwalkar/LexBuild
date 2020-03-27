@@ -15,36 +15,45 @@ public:
      * @param end - ending vertex
      * @param weight - edge weight
      */
-    explicit edge(T start, T end, W weight);
+    explicit edge(T start, T end, W weight)
+            : start(start), end(end), weight(weight) {}
 
     /**
      * Get the start vertex
      * @return the starting vertex
      */
-    const T& get_start() const;
+    const T& get_start() const {
+        return start;
+    }
 
     /**
      * Get the ending vertex
      * @return the ending vertex
      */
-    const T& get_end() const;
+    const T& get_end() const {
+        return end;
+    }
 
     /**
      * Get the edge weight
      * @return the weight
      */
-    const W& get_weight() const;
+    const W& get_weight() const {
+        return weight;
+    }
 
     /**
      * Equality operator
      * @param rhs - other edge to compare to
      * @return true, if the edges are the same, false otherwise
      */
-    bool operator==(const edge<T,W>& rhs) const;
+    bool operator==(const edge<T,W>& rhs) const
+    {
+        return this->start == rhs.start && this->end == rhs.end &&
+               this->weight == rhs.weight;
+    }
 
 private:
     T start, end;
     W weight;
 };
-
-#include "edge.tpp"
