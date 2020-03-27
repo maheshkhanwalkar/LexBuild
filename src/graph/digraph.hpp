@@ -27,7 +27,7 @@ public:
     void add_edge(T start, T end, W weight)
     {
         adj_map[start].insert(end);
-        weight_map[start][weight] = end;
+        weight_map[start].insert(std::make_pair(weight, end));
     }
 
     /**
@@ -42,7 +42,28 @@ public:
         return out.find(end) != out.end();
     }
 
+    /**
+     * Perform a walk of length 1 starting from the given vertex, traversing all
+     * immediate edges with the given weight
+     * @param start - starting vertex
+     * @param weight - edge weight to use
+     * @return all the vertices reached by the walk
+     */
+    std::unordered_set<T> walk(T start, W weight) const
+    {
+        const std::unordered_multimap<W, T>& possible = weight_map.at(start);
+        const auto& range = possible.equal_range(weight);
+
+        std::unordered_set<T> reachable;
+
+        for(auto itr = range.first; itr != range.second; itr++) {
+            reachable.insert(itr->second);
+        }
+
+        return reachable;
+    }
+
 private:
     std::unordered_map<T, std::unordered_set<T> > adj_map{};
-    std::unordered_map<T, std::unordered_map<W, T> > weight_map{};
+    std::unordered_map<T, std::unordered_multimap<W, T> > weight_map{};
 };
