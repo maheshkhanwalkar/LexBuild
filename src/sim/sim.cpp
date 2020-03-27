@@ -1,4 +1,6 @@
 #include "src/graph/digraph.hpp"
+#include "src/automata/nfa.hpp"
+
 #include <iostream>
 
 int main()
