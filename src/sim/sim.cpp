@@ -11,6 +11,8 @@ int main()
     graph.add_edge(0, 2, 'a');
     graph.add_edge(0, 3, 'b');
 
+    graph.rename_vertices(std::unordered_map<int,int>());
+
     std::unordered_set<int> reach = graph.walk(0, 'a');
 
     // std::cout << graph.has_edge(0, 1) << std::endl;

@@ -63,7 +63,54 @@ public:
         return reachable;
     }
 
+    void rename_vertices(const std::unordered_map<T, T>& mapping)
+    {
+        std::unordered_map<T, std::unordered_set<T> > adj_copy;
+
+        // Update the adjacency mapping
+        for(auto& elem : adj_map) {
+            const T& n_elem = mapping.at(elem.first);
+            adj_copy[n_elem] = rename_set(elem.second, mapping);
+        }
+
+        std::unordered_map<T, std::unordered_multimap<W, T> > weight_copy;
+
+        // Update the weight mapping
+        for(auto& elem : weight_map) {
+            const T& n_elem = mapping.at(elem.first);
+
+            for(auto& edge : elem.second) {
+                edge.second = mapping.at(edge.second);
+            }
+
+            weight_copy[n_elem] = elem.second;
+        }
+
+        // Update the internal structures
+        this->adj_map = adj_copy;
+        this->weight_map = weight_copy;
+    }
+
 private:
     std::unordered_map<T, std::unordered_set<T> > adj_map{};
     std::unordered_map<T, std::unordered_multimap<W, T> > weight_map{};
+
+    /**
+     * Rename the elements in a set, using the provided mapping scheme
+     * @param orig - original set
+     * @param mapping - element-to-element renaming scheme
+     * @return a new set containing the renamed elements
+     */
+    std::unordered_set<T> rename_set(const std::unordered_set<T>& orig,
+            const std::unordered_map<T, T>& mapping)
+    {
+        std::unordered_set<T> result;
+
+        // Element-by-element translation
+        for(T elem : orig) {
+            result.insert(mapping.at(elem));
+        }
+
+        return result;
+    }
 };
