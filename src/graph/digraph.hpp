@@ -63,6 +63,10 @@ public:
         return reachable;
     }
 
+    /**
+     * Rename the vertices with the provided mapping
+     * @param mapping - original name -> new name mapping
+     */
     void rename_vertices(const std::unordered_map<T, T>& mapping)
     {
         std::unordered_map<T, std::unordered_set<T> > adj_copy;
