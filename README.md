@@ -2,9 +2,7 @@
 
 ### Important Note:
 The project is undergoing a large revamp effort -- which will include major changes to the API and increase
-functionality overall. Things may break and not be fully fixed for a while, so as of right now, it is best to stick
-to the [v1.0](https://github.com/maheshkhanwalkar/LexBuild/tree/ec865cd4cd4c121fa2086bb6664a38b6ebebba1e) release
-which is stable and properly documented.
+overall functionality and speed. To track those changes, visit the 'dev' branch for more details.
 
 LexBuild is a lexer library that allows developers to integrate lexers into their programs. Traditionally, tools
 like 'lex' and 'flex' would take a specification and generate code to tokenize text based on that specification.
